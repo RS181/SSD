@@ -24,17 +24,6 @@ public class BlockChainProgram {
 
         System.out.println("Second Block is " + secondBlock.toString());
         System.out.println("The block chain is " + blockChain.toString());
-        /*
-
-
-        //Third Block
-        String[] shadGetsSome = {"Tim gives Shad $10" , "Terry gives $50 to Shad" };
-        Block thirdBlock = new Block(shadGetsSome,secondBlock.getBlockHash());
-        blockChain.add(thirdBlock);
-
-        System.out.println("Third Block is " + thirdBlock.toString());
-        System.out.println("The block chain is " + blockChain.toString());
-        */
 
         //Third Block
         String[] shadGetsSome = {"Tim gives Shad $10" , "Terry gives $50 to Shad" };
