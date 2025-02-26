@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Date;
 
 public class Block {
 
@@ -25,6 +26,7 @@ public class Block {
         this.transactions = transactions;
         this.previousBlockHash = previousBlockHash;
         this.index = index;
+        this.timestamp = new Date().getTime();
         this.nonce = 0;
         calculateBlockHash();
     }
@@ -74,7 +76,7 @@ public class Block {
     public String toString() {
         return  "{ Index = " + this.index + ", " +
                 "PreviousBlockHash = " + this.previousBlockHash + ", " +
-                //"Timestamp = " + this.timestamp +  ", " +
+                "Timestamp = " + this.timestamp +  ", " +
                 "BlockHash = " + this.blockHash + ", " +
                 "Nonce = " + this.nonce  + ", "+
                 "Transactions = " + Arrays.toString(transactions) + " }" ;
