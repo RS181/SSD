@@ -25,6 +25,7 @@ public class Block {
         this.transactions = transactions;
         this.previousBlockHash = previousBlockHash;
         this.index = index;
+        this.nonce = 0;
         calculateBlockHash();
     }
 
@@ -43,7 +44,6 @@ public class Block {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             this.blockHash = Utils.getHexString(hash);
-
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -62,6 +62,10 @@ public class Block {
         return timestamp;
     }
 
+    public int getNonce() {
+        return nonce;
+    }
+
     public void incrementNonce(){
         this.nonce++;
     }
@@ -72,7 +76,7 @@ public class Block {
                 "PreviousBlockHash = " + this.previousBlockHash + ", " +
                 //"Timestamp = " + this.timestamp +  ", " +
                 "BlockHash = " + this.blockHash + ", " +
-                //"Nonce = " + this.nonce  + ", "+
+                "Nonce = " + this.nonce  + ", "+
                 "Transactions = " + Arrays.toString(transactions) + " }" ;
     }
 }
