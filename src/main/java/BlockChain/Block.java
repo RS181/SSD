@@ -8,9 +8,6 @@ import java.util.Date;
 
 public class Block {
 
-    // Block index , just for faciliting viewing
-    int index;
-
     //TODO: Criar uma classe para transações
     private  String[] transactions;
     private String blockHash;
@@ -22,34 +19,14 @@ public class Block {
     private int nonce;
 
 
-    public Block(String[] transactions, String previousBlockHash, int index) {
+    public Block(String[] transactions, String previousBlockHash) {
         this.transactions = transactions;
         this.previousBlockHash = previousBlockHash;
-        this.index = index;
         this.timestamp = new Date().getTime();
         this.nonce = 0;
         calculateBlockHash();
     }
 
-    /* Auxiliar method's */
-
-    /**
-     * Calculates the hash of the current Block
-     *
-     * TODO Confirmar esta definição para o calculo do BlockHash
-     *
-     * BlockHash = previousBlockHash +  timestamp + nonce + transactions
-     */
-    public void calculateBlockHash(){
-        String input = previousBlockHash + timestamp + nonce + Arrays.toString(transactions);
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            this.blockHash = Utils.getHexString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /* Getter's & Setter's */
     public String getBlockHash() {
@@ -72,10 +49,29 @@ public class Block {
         this.nonce++;
     }
 
+
+    /* Auxiliar method's */
+
+    /**
+     * Calculates the hash of the current Block
+     *
+     * TODO Confirmar esta definição para o calculo do BlockHash
+     *
+     * BlockHash = previousBlockHash +  timestamp + nonce + transactions
+     */
+    public void calculateBlockHash(){
+        String input = previousBlockHash + timestamp + nonce + Arrays.toString(transactions);
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            this.blockHash = Utils.getHexString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
     @Override
     public String toString() {
-        return  "{ Index = " + this.index + ", " +
-                "PreviousBlockHash = " + this.previousBlockHash + ", " +
+        return "{ PreviousBlockHash = " + this.previousBlockHash + ", " +
                 "Timestamp = " + this.timestamp +  ", " +
                 "BlockHash = " + this.blockHash + ", " +
                 "Nonce = " + this.nonce  + ", "+
