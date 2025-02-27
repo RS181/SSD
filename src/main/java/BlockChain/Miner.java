@@ -35,7 +35,7 @@ public class Miner {
      */
 
     public Block getNewestBlock() {
-        minedBlock = mineBlock(minedBlock,4);
+        minedBlock = mineBlock(minedBlock,Constants.DIFFICULTY);
         return minedBlock;
     }
 
@@ -64,6 +64,22 @@ public class Miner {
         System.out.println("Block hash: " + b.getBlockHash());
         System.out.println("Nonce: " + b.getNonce());
         return b;
+    }
 
+    /**
+     * Validates a block according to Proof of Work rules
+     * This method checks whether the block's hash satisfies the difficulty requirement (i.e., the hash must have the required number of leading zeros).
+     * @param block
+     * @param dificulty
+     * @return
+     */
+    public boolean validateBlock(Block block, int dificulty){
+        String target = new String(new char[dificulty]).replace('\0','0');
+        boolean isValid = block.getBlockHash().substring(0,dificulty).equals(target);
+        if(!isValid)
+            System.out.println("Block validation failed: Hash does not meet the required difficulty.");
+        else
+            System.out.println("Block validation succeeded: Hash meets the required difficulty.");
+        return isValid;
     }
 }
