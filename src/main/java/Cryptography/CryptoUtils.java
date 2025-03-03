@@ -9,6 +9,7 @@ public class CryptoUtils {
 
     /**
      * Sign's the data array with the private key
+     *
      * @param privateKey of the signer
      * @param data that is going to be signed
      * @return the signed data
@@ -27,6 +28,14 @@ public class CryptoUtils {
         }
     }
 
+    /**
+     * Verifies the digital signature using the given public key.
+     *
+     * @param publicKey the public key used for verification
+     * @param data the original data that was signed
+     * @param signature the digital signature to be verified
+     * @return {@code true} if the signature is valid, {@code false} otherwise
+     */
 
     public static boolean verifySignature(PublicKey publicKey, byte[] data, byte[] signature){
         Signature verifier = null;
