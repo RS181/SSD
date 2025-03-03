@@ -1,5 +1,7 @@
 package BlockChain;
 
+import Cryptography.CryptoUtils;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -62,13 +64,7 @@ public class Block {
      */
     public void calculateBlockHash(){
         String input = previousBlockHash + timestamp + nonce + Arrays.toString(transactions);
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            this.blockHash = Utils.getHexString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        this.blockHash = CryptoUtils.getHash(input);
     }
     @Override
     public String toString() {
