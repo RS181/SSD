@@ -13,6 +13,7 @@ public class Block {
     private String blockHash;
     private String  previousBlockHash;
 
+
     // TODO: no timestamp o valor é o UTC?
     private long timestamp;
     //TODO: qual o valor incial da nonce? ( pode ser 0 e depois vamos incrementando )
@@ -72,7 +73,7 @@ public class Block {
     @Override
     public String toString() {
         return "{ PreviousBlockHash = " + this.previousBlockHash + ", " +
-                "Timestamp = " + this.timestamp +  ", " +
+                "Timestamp = " + Utils.convertTime(this.timestamp) +  ", " +
                 "BlockHash = " + this.blockHash + ", " +
                 "Nonce = " + this.nonce  + ", "+
                 "Transactions = " + Arrays.toString(transactions) + " }" ;
