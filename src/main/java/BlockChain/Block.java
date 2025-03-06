@@ -62,9 +62,10 @@ public class Block {
      *
      * BlockHash = previousBlockHash +  timestamp + nonce + transactions
      */
-    public void calculateBlockHash(){
+    public String calculateBlockHash(){
         String input = previousBlockHash + timestamp + nonce + Arrays.toString(transactions);
         this.blockHash = CryptoUtils.getHash(input);
+        return this.blockHash;
     }
     @Override
     public String toString() {
