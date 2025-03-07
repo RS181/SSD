@@ -60,10 +60,10 @@ public class Block {
      *
      * TODO Confirmar esta definição para o calculo do BlockHash
      *
-     * BlockHash = previousBlockHash +  timestamp + nonce + transactions
+     * BlockHash = previousBlockHash +  timestamp + nonce
      */
     public String calculateBlockHash(){
-        String input = previousBlockHash + timestamp + nonce + Arrays.toString(transactions);
+        String input = previousBlockHash + timestamp + nonce; //+ Arrays.toString(transactions);
         this.blockHash = CryptoUtils.getHash(input);
         return this.blockHash;
     }
