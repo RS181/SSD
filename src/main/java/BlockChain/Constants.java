@@ -15,5 +15,5 @@ public class Constants {
     /**
      * Defines the reward given to a Miner after mining a Block
      */
-    public static final int MINER_REWARD = 5;
+    public static final double MINER_REWARD = 5;
 }
