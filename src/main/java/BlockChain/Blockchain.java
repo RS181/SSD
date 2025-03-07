@@ -1,10 +1,15 @@
 package BlockChain;
 
+import Cryptography.CryptoUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class contains a list of blocks and a method to verify the validity of the chain that is stored
+ * This class contains a list of blocks and a methods to:
+ * -> verify the validity of the chain that is stored
+ * -> add valid blocks to the chain
+ *
  */
 public class Blockchain {
 
@@ -27,9 +32,7 @@ public class Blockchain {
         this.blockchain = blockChainList;
     }
 
-
-    /* Getter's & Setter's */
-
+    /* Getter's  */
     public List<Block> getBlockchain() {
         return blockchain;
     }
@@ -38,6 +41,8 @@ public class Blockchain {
         return lastBlock;
     }
 
+    /* Auxiliar methods */
+
     /**
      * TODO: Verificar se a lógica esta correta
      * Check's all block's in the  blockchain (starting from the first)
@@ -45,23 +50,19 @@ public class Blockchain {
      * (a) The stored hash of the current block is actually what it calculates
      * (b) The hash of the previous block stored in the current block is the hash of the previous block
      * (c) The current block has been mined
-     *
      * @return True/False -> (a==True) && (b==True) && (c==True)
      */
     public boolean checkCurrentChain(){
-        if (blockchain.size() == 0 ) return true;
-
-        if (blockchain.size() == 1)
-            return blockchain.get(0).getBlockHash().equals(blockchain.get(0).calculateBlockHash());
-
+        String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
+        boolean a,b,c;
+        a = b = c = true;
         boolean flag = true;
         for (int i = 0 ; i < blockchain.size() ; i++){
             String previousHash = i==0 ? "" : blockchain.get(i - 1).getBlockHash();
-            String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
 
-            boolean a = blockchain.get(i).getBlockHash().equals(blockchain.get(i).calculateBlockHash());
-            boolean b = previousHash.equals(blockchain.get(i).getPreviousBlockHash());
-            boolean c = blockchain.get(i).getBlockHash().substring(0,Constants.DIFFICULTY).equals(prefixString);
+            a = blockchain.get(i).getBlockHash().equals(blockchain.get(i).calculateBlockHash());
+            b = previousHash.equals(blockchain.get(i).getPreviousBlockHash());
+            c = blockchain.get(i).getBlockHash().substring(0,Constants.DIFFICULTY).equals(prefixString);
             flag = a && b && c;
 
             if (!flag){
@@ -74,21 +75,54 @@ public class Blockchain {
         return flag;
     }
 
-
     /**
-     * Check if the current block in the chain are valid, if so
-     * add's the given block to the blochain
-     * @param b
-     * @return {@code true} if the the block was added, {@code false} otherwise
+     * Check if the block we are trying to add to the chain is valid and also check
+     * if the current  chain is valid.If so add's the given block to the blochain
+     * @param block that we want to add to the blockchain
+     * @param miner that mined the block
+     *
+     * @return {@code true} if  the block was added, {@code false} otherwise
      */
-    public boolean addBlock(Block b){
-        if(!checkCurrentChain()) return false;
-        this.blockchain.add(b);
-        this.lastBlock = b;
-        return true;
+    public boolean addBlock(Block block,Miner miner){
+        String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
+        if (!validateBlock(block,miner)) return false;
 
+        if(!checkCurrentChain()) return false;
+        this.blockchain.add(block);
+        this.lastBlock = block;
+        return true;
     }
 
+    /**
+     * Checks if the block received has an argument is valid by:
+     * (a) The stored hash of the current block is actually what it calculates
+     * (b) The hash of the last block in the chain is equal to the previous hash of
+     * the block we are trying to add
+     * (c) The block has been mined
+     * (d) The Digital Signature of Miner of the block is valid
+     *
+     * @param block that we are validating
+     * @param miner that suposedely mined th block
+     */
+    private boolean validateBlock(Block block,Miner miner){
+        String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
+        String blockHeader =
+                block.getBlockHash() + block.getPreviousBlockHash() + block.getNonce() + block.getTimestamp();
+        byte[] minerSignature = block.getMinerSignature();
+        boolean a,b,c,d;
+        a = b = c = d = true;
+
+        a = block.getBlockHash().equals(block.calculateBlockHash());
+        if (lastBlock != null)
+            b = block.getPreviousBlockHash().equals(lastBlock.getBlockHash());
+        c = block.getBlockHash().substring(0, Constants.DIFFICULTY).equals(prefixString);
+        if (minerSignature == null)
+            d = false;
+        else
+            d = CryptoUtils.verifySignature(miner.publicKey,blockHeader.getBytes(),minerSignature);
+
+        return a && b && c && d;
+    }
 
     @Override
     public String toString() {
