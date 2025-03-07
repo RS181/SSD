@@ -21,6 +21,8 @@ public class CryptoProgram  {
 
         // Sign the payload
         byte[] signedPayload = CryptoUtils.sign(privateKey,payload.getBytes());
+        // Change the payload (so that signature detects changes and fails in the verification)
+        //payload = "change";
 
         // Verify the Signature
         boolean verified = CryptoUtils.verifySignature(publicKey,payload.getBytes(),signedPayload);
