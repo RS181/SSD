@@ -9,18 +9,14 @@ import java.util.Arrays;
 import java.util.Date;
 
 public class Block {
-
-    //TODO: Criar uma classe para transações
     private  String[] transactions;
     private String blockHash;
     private String  previousBlockHash;
-
-
     // TODO: no timestamp o valor é o UTC?
     private long timestamp;
     //TODO: qual o valor incial da nonce? ( pode ser 0 e depois vamos incrementando )
     private int nonce;
-
+    private  byte[] minerSignature = null; // Digital Signature of this block's header with Priv. Key of the respectiv miner
 
     public Block(String[] transactions, String previousBlockHash) {
         this.transactions = transactions;
@@ -34,6 +30,10 @@ public class Block {
     /* Getter's & Setter's */
     public String getBlockHash() {
         return blockHash;
+    }
+
+    public byte[] getMinerSignature() {
+        return minerSignature;
     }
 
     public String getPreviousBlockHash() {
@@ -52,6 +52,14 @@ public class Block {
         this.nonce++;
     }
 
+    //TODO: ver qual a melhor maneira de adicionar a assinatura do Miner (senão tiver a certeza deixar assim para já)
+    // TODO : PERGUNTAR AO PROFESSOR
+    public void setMinerSignature(byte[] minerSignature) {
+        if (this.minerSignature == null)
+            this.minerSignature =  minerSignature;
+        else
+            System.out.println("Block already has a signature");
+    }
 
     /* Auxiliar method's */
 
@@ -75,4 +83,5 @@ public class Block {
                 "Nonce = " + this.nonce  + ", "+
                 "Transactions = " + Arrays.toString(transactions) + " }" ;
     }
+
 }

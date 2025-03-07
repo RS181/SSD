@@ -1,5 +1,9 @@
 package BlockChain;
 
+import Cryptography.CryptoUtils;
+
+import java.security.*;
+
 /**
  * This class represents some node trying to mine a block and add it to the Blockchain
  *
@@ -10,76 +14,82 @@ public class Miner {
     private double reward;
     private Block minedBlock;
 
+    private PrivateKey privateKey;
+    public  PublicKey publicKey;
 
     /**
-     * Default constructor
+     * Constructor of a Miner:
+     * --> Create Key pair for this miner
      */
-    public  Miner(){}
-
-
-    /**
-     * Constructor of a Miner
-     * Creates a Block object that has yet to be mined
-     * @param transactions list of transactions
-     * @param previousBlockHash hash of the prevous block in the chain
-     */
-    public Miner (String[] transactions, String previousBlockHash ){
-        this.minedBlock = new Block(transactions,previousBlockHash);
+    public Miner (){
+        createKeyPair();
     }
 
 
+    /* Getter's */
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    /* Auxiliar method's */
+
+    private void createKeyPair(){
+        KeyPairGenerator keyGen = null;
+        try {
+            keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(2048);
+            KeyPair keyPair = keyGen.generateKeyPair();
+            this.privateKey = keyPair.getPrivate();
+            this.publicKey = keyPair.getPublic();
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("Error: While trying to create Key pair for Miner ");
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * This function returns the newly created block ONLY after the mineBlock() method is executed.
+     * Also sign's the mined block with Miner's Digital Signature
      * TODO:(VERIFICAR) Basicaly this does Proof of Work
-     * @return The newly mined Block to be added to the BlockChain
+     * @return The newly mined Block with Miner's signature set
      */
-
-    public Block getNewestBlock() {
-        minedBlock = mineBlock(minedBlock,Constants.DIFFICULTY);
+    public Block mineBlock(String[] tranctions, String previousBlockHash) {
+        this.minedBlock = new Block(tranctions,previousBlockHash);
+        minedBlock = proofOfWork(minedBlock,Constants.DIFFICULTY);
+        signBlockHeader();
         return minedBlock;
+    }
+
+    /**
+     * Sign's the  minedBlock header
+     */
+    public void signBlockHeader(){
+        String blockHeader = minedBlock.getBlockHash() + minedBlock.getPreviousBlockHash() + minedBlock.getNonce() + minedBlock.getTimestamp();
+        byte[] signature =  CryptoUtils.sign(privateKey,blockHeader.getBytes());
+        minedBlock.setMinerSignature(signature);
     }
 
     /**
      * TODO: verificar se PoW está bem feito
      * Mines a block with a given dificulty (POW) and return's
-     *
      * @param b
      * @param dificulty
      * @return
      */
-    public Block  mineBlock(Block b, int dificulty){
-        String target = new String(new char[dificulty]).replace('\0','0');
+    public Block proofOfWork(Block b, int dificulty){
+        String prefixString = new String(new char[dificulty]).replace('\0','0');
         String hash = b.getBlockHash();
 
-        while (!hash.substring(0,dificulty).equals(target)){
+        while (!hash.substring(0,dificulty).equals(prefixString)){
             b.incrementNonce();
             b.calculateBlockHash();
             hash = b.getBlockHash();
-            System.out.println(hash.substring(0,dificulty));
+            //System.out.println(hash.substring(0,dificulty));
         }
-
         //TODO: Add reward to miner
-
         System.out.println("Mined Block !! ");
         System.out.println("Block hash: " + b.getBlockHash());
         System.out.println("Nonce: " + b.getNonce());
         return b;
-    }
-
-    /**
-     * Validates a block according to Proof of Work rules
-     * This method checks whether the block's hash satisfies the difficulty requirement (i.e., the hash must have the required number of leading zeros).
-     * @param block
-     * @param dificulty
-     * @return
-     */
-    public boolean validateBlock(Block block, int dificulty){
-        String target = new String(new char[dificulty]).replace('\0','0');
-        boolean isValid = block.getBlockHash().substring(0,dificulty).equals(target);
-        if(!isValid)
-            System.out.println("Block validation failed: Hash does not meet the required difficulty.");
-        else
-            System.out.println("Block validation succeeded: Hash meets the required difficulty.");
-        return isValid;
     }
 }
