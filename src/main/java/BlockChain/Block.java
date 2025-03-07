@@ -5,6 +5,7 @@ import Cryptography.CryptoUtils;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -17,6 +18,7 @@ public class Block {
     //TODO: qual o valor incial da nonce? ( pode ser 0 e depois vamos incrementando )
     private int nonce;
     private  byte[] minerSignature = null; // Digital Signature of this block's header with Priv. Key of the respectiv miner
+    private PublicKey minerPublicKey = null; // Public key of this block miner
 
     public Block(String[] transactions, String previousBlockHash) {
         this.transactions = transactions;
@@ -34,6 +36,10 @@ public class Block {
 
     public byte[] getMinerSignature() {
         return minerSignature;
+    }
+
+    public PublicKey getMinerPublicKey() {
+        return minerPublicKey;
     }
 
     public String getPreviousBlockHash() {
@@ -59,6 +65,10 @@ public class Block {
             this.minerSignature =  minerSignature;
         else
             System.out.println("Block already has a signature");
+    }
+
+    public void setMinerPublicKey(PublicKey minerPublicKey) {
+        this.minerPublicKey = minerPublicKey;
     }
 
     /* Auxiliar method's */

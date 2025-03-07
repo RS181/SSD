@@ -2,6 +2,7 @@ package BlockChain;
 
 import Cryptography.CryptoUtils;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,25 +51,33 @@ public class Blockchain {
      * (a) The stored hash of the current block is actually what it calculates
      * (b) The hash of the previous block stored in the current block is the hash of the previous block
      * (c) The current block has been mined
+     * (d) The block has a valid miner Signature
      * @return True/False -> (a==True) && (b==True) && (c==True)
      */
     public boolean checkCurrentChain(){
         String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
-        boolean a,b,c;
-        a = b = c = true;
+        boolean a,b,c,d;
+        a = b = c = d = true;
         boolean flag = true;
         for (int i = 0 ; i < blockchain.size() ; i++){
             String previousHash = i==0 ? "" : blockchain.get(i - 1).getBlockHash();
+            Block currentBlock = blockchain.get(i);
+            byte[] minerSignature = currentBlock.getMinerSignature();
+            PublicKey minerPublicKey = currentBlock.getMinerPublicKey();
+            String blockHeader = currentBlock.getBlockHash() + currentBlock.getPreviousBlockHash() + currentBlock.getNonce() + currentBlock.getTimestamp();
 
-            a = blockchain.get(i).getBlockHash().equals(blockchain.get(i).calculateBlockHash());
-            b = previousHash.equals(blockchain.get(i).getPreviousBlockHash());
-            c = blockchain.get(i).getBlockHash().substring(0,Constants.DIFFICULTY).equals(prefixString);
-            flag = a && b && c;
+
+            a = currentBlock.getBlockHash().equals(currentBlock.calculateBlockHash());
+            b = previousHash.equals(currentBlock.getPreviousBlockHash());
+            c = currentBlock.getBlockHash().substring(0,Constants.DIFFICULTY).equals(prefixString);
+            d = CryptoUtils.verifySignature(minerPublicKey,blockHeader.getBytes(),minerSignature);
+            flag = a && b && c && d;
 
             if (!flag){
                 System.out.println("   a :" + a );
                 System.out.println("   b :" + b );
                 System.out.println("   c :" + c );
+                System.out.println("   d :" + d );
                 break;
             }
         }

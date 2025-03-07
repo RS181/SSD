@@ -49,14 +49,19 @@ public class Miner {
 
     /**
      * This function returns the newly created block ONLY after the mineBlock() method is executed.
-     * Also sign's the mined block with Miner's Digital Signature
+     * Also it :
+     * --> Sign's the mined block with Miner's Digital Signature
+     * --> Sets the publick key of miner that mined the block (to facilitate verification)
      * TODO:(VERIFICAR) Basicaly this does Proof of Work
      * @return The newly mined Block with Miner's signature set
      */
     public Block mineBlock(String[] tranctions, String previousBlockHash) {
         this.minedBlock = new Block(tranctions,previousBlockHash);
         minedBlock = proofOfWork(minedBlock,Constants.DIFFICULTY);
+        //Signs the block
         signBlockHeader();
+        // Sets the public key of miner (to allow for later verification of Signature)
+        minedBlock.setMinerPublicKey(publicKey);
         return minedBlock;
     }
 
