@@ -45,7 +45,7 @@ public class Transaction {
                 "\t\tSender: " + senderPublicKey.toString() + "\n" +
                 "\t\tTransaction type: " + type + "\n" +
                 "\t\tBid ammount:  " + bidAmount + "\n" +
-                "\t\tTimestamp: " + Utils.convertTime(timestamp) + "\n"+
+                "\t\tTimestamp: " + Utils.convertTime(timestamp) + "\n";
     }
 
     /*Getter's*/
