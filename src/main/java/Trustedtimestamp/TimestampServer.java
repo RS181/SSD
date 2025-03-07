@@ -61,10 +61,5 @@ public final class TimestampServer {
     }
 
 
-    private void printByteArray(byte[] data){
-        for (byte b : data)
-            System.out.print(b + " ");
-        System.out.println();
-    }
 
 }
