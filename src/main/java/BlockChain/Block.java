@@ -29,7 +29,7 @@ public class Block {
     }
 
 
-    /* Getter's & Setter's */
+    /* Getter's & Setter's (most Setter's are there just for testing purposes) */
     public String getBlockHash() {
         return blockHash;
     }
@@ -67,10 +67,29 @@ public class Block {
             System.out.println("Block already has a signature");
     }
 
+    public void forceSetMinerSignature(byte[] minerSignature){
+        this.minerSignature = minerSignature;
+    }
+
     public void setMinerPublicKey(PublicKey minerPublicKey) {
         this.minerPublicKey = minerPublicKey;
     }
 
+    public void setBlockHash(String blockHash) {
+        this.blockHash = blockHash;
+    }
+
+    public void setPreviousBlockHash(String previousBlockHash) {
+        this.previousBlockHash = previousBlockHash;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setNonce(int nonce) {
+        this.nonce = nonce;
+    }
     /* Auxiliar method's */
 
     /**

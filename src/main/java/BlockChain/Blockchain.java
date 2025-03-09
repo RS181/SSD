@@ -50,9 +50,9 @@ public class Blockchain {
      * So, here we’re making three specific checks for every block:
      * (a) The stored hash of the current block is actually what it calculates
      * (b) The hash of the previous block stored in the current block is the hash of the previous block
-     * (c) The current block has been mined
+     * (c) The current block has been mined (PoW)
      * (d) The block has a valid miner Signature
-     * @return True/False -> (a==True) && (b==True) && (c==True)
+     * @return True/False -> (a==True) && (b==True) && (c==True) && (d==True)
      */
     public boolean checkCurrentChain(){
         String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
@@ -74,6 +74,7 @@ public class Blockchain {
             flag = a && b && c && d;
 
             if (!flag){
+                System.out.println("Block [" + i  + "] in the Blockchain failed the check:");
                 System.out.println("   a :" + a );
                 System.out.println("   b :" + b );
                 System.out.println("   c :" + c );
@@ -93,7 +94,6 @@ public class Blockchain {
      * @return {@code true} if  the block was added, {@code false} otherwise
      */
     public boolean addBlock(Block block,Miner miner){
-        String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
         if (!validateBlock(block,miner)) return false;
 
         if(!checkCurrentChain()) return false;
@@ -107,7 +107,7 @@ public class Blockchain {
      * (a) The stored hash of the current block is actually what it calculates
      * (b) The hash of the last block in the chain is equal to the previous hash of
      * the block we are trying to add
-     * (c) The block has been mined
+     * (c) The block has been mined (PoW)
      * (d) The Digital Signature of Miner of the block is valid
      *
      * @param block that we are validating

@@ -31,8 +31,15 @@ public class Miner {
         return publicKey;
     }
 
+    // JUST FOR TESTING PURPOSES (SHOULD NOT BE ABLE TO GET PRIV KEY OF MINER)
+    public PrivateKey getPrivateKey(){ return privateKey; }
+
     /* Auxiliar method's */
 
+    /**
+     * Creates a Public and Private Key for miner, so
+     * that he can sign the block's that he mined
+     */
     private void createKeyPair(){
         KeyPairGenerator keyGen = null;
         try {
