@@ -58,7 +58,7 @@ public class CryptoUtils {
      * @param input the string to be hashed
      * @return the hash of the input as a hexadecimal string
      */
-    public static String getHash(String input){
+    public static String getHash256(String input){
         MessageDigest digest = null;
         try {
             digest = MessageDigest.getInstance("SHA-256");
@@ -68,6 +68,25 @@ public class CryptoUtils {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Generates the SHA-1 hash of a given input string.
+     *
+     * @param input the string to be hashed
+     * @return the hash of the input as a hexadecimal string
+     */
+    public static String getHash1(String input){
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-1");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return Utils.getHexString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
 
 }

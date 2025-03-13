@@ -5,8 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.HexFormat;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -141,7 +139,7 @@ class BlockchainTest {
         assertTrue(blockchain.checkCurrentChain(),"Erro checkCurrentChain devia retornar verdadeiro");
 
         // Change the block hash of first block in the blockchain
-        firstBlock.setBlockHash(CryptoUtils.getHash("INVALID"));
+        firstBlock.setBlockHash(CryptoUtils.getHash256("INVALID"));
 
         //secondBlock.setBlockHash(CryptoUtils.getHash("INVALID"));
         //thirdBlock.setBlockHash(CryptoUtils.getHash("INVALID"));
@@ -164,7 +162,7 @@ class BlockchainTest {
         assertTrue(blockchain.checkCurrentChain(),"Erro checkCurrentChain devia retornar verdadeiro");
 
         // Change the previous block hash of third block in the blockchain
-        thirdBlock.setPreviousBlockHash(CryptoUtils.getHash("INVALID"));
+        thirdBlock.setPreviousBlockHash(CryptoUtils.getHash256("INVALID"));
 
         assertFalse(blockchain.checkCurrentChain(),"Erro checkCurrentChain devia retornar falso");
 

@@ -2,9 +2,6 @@ package BlockChain;
 
 import Cryptography.CryptoUtils;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Date;
@@ -101,7 +98,7 @@ public class Block {
      */
     public String calculateBlockHash(){
         String input = previousBlockHash + timestamp + nonce; //+ Arrays.toString(transactions);
-        this.blockHash = CryptoUtils.getHash(input);
+        this.blockHash = CryptoUtils.getHash256(input);
         return this.blockHash;
     }
     @Override
