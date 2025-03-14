@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.Date;
 
 public class Block {
+    // TODO devemos 'ORDENAR' as transações (para garantir que o calculo da hash do bloco é o mesmo em todos os nós)
+    // TODO ajustar representação de transações para Class Transanctions
     private  String[] transactions;
     private String blockHash;
     private String  previousBlockHash;
@@ -94,10 +96,10 @@ public class Block {
      *
      * TODO Confirmar esta definição para o calculo do BlockHash
      *
-     * BlockHash = previousBlockHash +  timestamp + nonce
+     * BlockHash = previousBlockHash +  timestamp + nonce + transactions
      */
     public String calculateBlockHash(){
-        String input = previousBlockHash + timestamp + nonce; //+ Arrays.toString(transactions);
+        String input = previousBlockHash + timestamp + nonce + Arrays.toString(transactions);
         this.blockHash = CryptoUtils.getHash256(input);
         return this.blockHash;
     }
