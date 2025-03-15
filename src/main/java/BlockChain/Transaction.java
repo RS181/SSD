@@ -32,8 +32,7 @@ public class Transaction {
      * @return genarated Transaction Id
      */
     private String generateTransactionId() {
-        return Base64.getEncoder().encodeToString(
-                (senderPublicKey.toString() + type + auctionId + bidAmount + timestamp).getBytes());
+        return CryptoUtils.getHash256((senderPublicKey.toString() + type + auctionId + bidAmount + timestamp));
     }
 
 
@@ -42,7 +41,7 @@ public class Transaction {
         return "\n\tTransaction Details:\n" +
                 "\t\tTransaction Id: " + transactionId + "\n" +
                 "\t\tAuction Id: " + auctionId + "\n" +
-                "\t\tSender: " + senderPublicKey.toString() + "\n" +
+                "\t\tSender: " + senderPublicKey + "\n" +
                 "\t\tTransaction type: " + type + "\n" +
                 "\t\tBid ammount:  " + bidAmount + "\n" +
                 "\t\tTimestamp: " + Utils.convertTime(timestamp) + "\n";

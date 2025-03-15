@@ -3,6 +3,8 @@ package BlockChain;
 import Cryptography.CryptoUtils;
 
 import java.security.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * This class represents some node trying to mine a block and add it to the Blockchain
@@ -57,12 +59,15 @@ public class Miner {
     /**
      * This function returns the newly created block ONLY after the mineBlock() method is executed.
      * Also it :
+     * --> Sort's the list of transanctions by transaction Id
      * --> Sign's the mined block with Miner's Digital Signature
      * --> Sets the publick key of miner that mined the block (to facilitate verification)
-     * TODO:(VERIFICAR) Basicaly this does Proof of Work
      * @return The newly mined Block with Miner's signature set
      */
-    public Block mineBlock(String[] tranctions, String previousBlockHash) {
+    public Block mineBlock(ArrayList<Transaction> tranctions, String previousBlockHash) {
+        // Order the transction by TransactionId (so that everyone sees the transaction
+        // in the same order and therefore everyone will calculate the same block hash)
+        tranctions.sort(Comparator.comparing(Transaction::getTransactionId));
         this.minedBlock = new Block(tranctions,previousBlockHash);
         minedBlock = proofOfWork(minedBlock,Constants.DIFFICULTY);
         //Signs the block
@@ -98,7 +103,6 @@ public class Miner {
             hash = b.getBlockHash();
             //System.out.println(hash.substring(0,dificulty));
         }
-        //TODO: Add reward to miner
         System.out.println("Mined Block !! ");
         System.out.println("Block hash: " + b.getBlockHash());
         System.out.println("Nonce: " + b.getNonce());

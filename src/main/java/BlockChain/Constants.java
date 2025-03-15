@@ -1,7 +1,7 @@
 package BlockChain;
 
 /**
- * Class that has some constant's
+ * Class that has some constant's relating Blockchain
  */
 public class Constants {
 
@@ -11,9 +11,5 @@ public class Constants {
      */
     public static final int DIFFICULTY = 3;
 
-    //TODO: verificar qual o valor apropriado
-    /**
-     * Defines the reward given to a Miner after mining a Block
-     */
-    public static final double MINER_REWARD = 5;
+
 }

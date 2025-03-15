@@ -3,13 +3,15 @@ package BlockChain;
 import Cryptography.CryptoUtils;
 
 import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
 public class Block {
     // TODO devemos 'ORDENAR' as transações (para garantir que o calculo da hash do bloco é o mesmo em todos os nós)
     // TODO ajustar representação de transações para Class Transanctions
-    private  String[] transactions;
+    //private  String[] transactions;
+    private ArrayList<Transaction> transactions;
     private String blockHash;
     private String  previousBlockHash;
     // TODO: no timestamp o valor é o UTC?
@@ -19,7 +21,7 @@ public class Block {
     private  byte[] minerSignature = null; // Digital Signature of this block's header with Priv. Key of the respectiv miner
     private PublicKey minerPublicKey = null; // Public key of this block miner
 
-    public Block(String[] transactions, String previousBlockHash) {
+    public Block(ArrayList<Transaction> transactions, String previousBlockHash) {
         this.transactions = transactions;
         this.previousBlockHash = previousBlockHash;
         this.timestamp = new Date().getTime();
@@ -99,7 +101,7 @@ public class Block {
      * BlockHash = previousBlockHash +  timestamp + nonce + transactions
      */
     public String calculateBlockHash(){
-        String input = previousBlockHash + timestamp + nonce + Arrays.toString(transactions);
+        String input = previousBlockHash + timestamp + nonce + transactions;
         this.blockHash = CryptoUtils.getHash256(input);
         return this.blockHash;
     }
@@ -109,7 +111,7 @@ public class Block {
                 "Timestamp = " + Utils.convertTime(this.timestamp) +  ", " +
                 "BlockHash = " + this.blockHash + ", " +
                 "Nonce = " + this.nonce  + ", "+
-                "Transactions = " + Arrays.toString(transactions) + " }" ;
+                "Transactions = " +transactions + " }" ;
     }
 
 }
