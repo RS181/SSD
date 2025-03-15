@@ -10,7 +10,12 @@ public class KademliaProgram {
     public static void main(String[] args) {
         Node n1 = new Node("localhost",1234);
 
-        System.out.println(n1.getNodeId());
+        System.out.print(n1.getRoutingTable());
+
+        Node n2 = new Node("localhost",4321);
+
+        n1.getRoutingTable().addNodeToBucketList(n2);
+        System.out.print(n1.getRoutingTable());
 
     }
 }

@@ -9,6 +9,7 @@ public class Node {
     private String nodeId; // Unique Id
     private String ipAddr;
     private int port;
+    private RoutingTable routingTable;
 
 
     /**
@@ -20,8 +21,25 @@ public class Node {
         this.ipAddr = ipAddr;
         this.port = port;
         this.nodeId = generateNodeId(ipAddr,port);
+        this.routingTable = new RoutingTable(nodeId);
     }
 
+    /* Getter's */
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public String getIpAddr() {
+        return ipAddr;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public RoutingTable getRoutingTable() {
+        return routingTable;
+    }
 
     /**
      * Generates a Node ID based on the IP address and port.
@@ -43,21 +61,9 @@ public class Node {
         return String.format("%8s", Integer.toBinaryString(first8Bits)).replace(' ', '0'); // Ensures 8-bit format
     }
 
-    /* Getter's */
-    public String getNodeId() {
-        return nodeId;
+
+    @Override
+    public String toString() {
+        return "[Node Id = " + nodeId + ", Ip address = "  + ipAddr + ", Port = " + port + "]";
     }
-
-    public String getIpAddr() {
-        return ipAddr;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-
-
-
-
 }
