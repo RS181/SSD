@@ -2,12 +2,13 @@ package BlockChain;
 
 import Cryptography.CryptoUtils;
 
+import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
-public class Block {
+public class Block implements Serializable {
     private ArrayList<Transaction> transactions;
     private String blockHash;
     private String  previousBlockHash;
@@ -95,9 +96,6 @@ public class Block {
 
     /**
      * Calculates the hash of the current Block
-     *
-     * TODO Confirmar esta definição para o calculo do BlockHash
-     *
      * BlockHash = previousBlockHash +  timestamp + nonce + transactions
      */
     public String calculateBlockHash(){

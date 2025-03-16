@@ -1,12 +1,13 @@
 package BlockChain;
 import Cryptography.CryptoUtils;
 
+import java.io.Serializable;
 import java.security.*;
 import java.util.Arrays;
 import java.util.Base64;
 
 /*Class that represents a Transaction (Operation) */
-public class Transaction {
+public class Transaction implements Serializable {
     public enum TransactionType {
         CREATE_AUCTION, START_AUCTION, CLOSE_AUCTION, PLACE_BID
     }
