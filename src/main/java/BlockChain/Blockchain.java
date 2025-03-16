@@ -64,7 +64,8 @@ public class Blockchain {
             Block currentBlock = blockchain.get(i);
             byte[] minerSignature = currentBlock.getMinerSignature();
             PublicKey minerPublicKey = currentBlock.getMinerPublicKey();
-            String blockHeader = currentBlock.getBlockHash() + currentBlock.getPreviousBlockHash() + currentBlock.getNonce() + currentBlock.getTimestamp();
+            String blockHeader = currentBlock.getBlockHash() + currentBlock.getPreviousBlockHash()
+                    + currentBlock.getNonce() + currentBlock.getTimestamp() + currentBlock.getTransactions();
 
 
             a = currentBlock.getBlockHash().equals(currentBlock.calculateBlockHash());
@@ -116,7 +117,7 @@ public class Blockchain {
     private boolean validateBlock(Block block,Miner miner){
         String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
         String blockHeader =
-                block.getBlockHash() + block.getPreviousBlockHash() + block.getNonce() + block.getTimestamp();
+                block.getBlockHash() + block.getPreviousBlockHash() + block.getNonce() + block.getTimestamp() + block.getTransactions();
         byte[] minerSignature = block.getMinerSignature();
         boolean a,b,c,d;
         a = b = c = d = true;

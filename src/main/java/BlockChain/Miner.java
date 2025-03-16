@@ -4,6 +4,7 @@ import Cryptography.CryptoUtils;
 
 import java.security.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 
 /**
@@ -81,7 +82,9 @@ public class Miner {
      * Sign's the  minedBlock header
      */
     public void signBlockHeader(){
-        String blockHeader = minedBlock.getBlockHash() + minedBlock.getPreviousBlockHash() + minedBlock.getNonce() + minedBlock.getTimestamp();
+        String blockHeader =
+                minedBlock.getBlockHash() + minedBlock.getPreviousBlockHash() + minedBlock.getNonce()
+                + minedBlock.getTimestamp() + minedBlock.getTransactions();
         byte[] signature =  CryptoUtils.sign(privateKey,blockHeader.getBytes());
         minedBlock.setMinerSignature(signature);
     }

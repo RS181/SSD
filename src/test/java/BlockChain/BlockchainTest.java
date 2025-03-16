@@ -74,7 +74,8 @@ class BlockchainTest {
         Block firstBlock = user1.mineBlock(startAuction,"");
 
         String blockHeader =
-                firstBlock.getBlockHash() + firstBlock.getPreviousBlockHash() + firstBlock.getNonce() + firstBlock.getTimestamp();
+                firstBlock.getBlockHash() + firstBlock.getPreviousBlockHash() + firstBlock.getNonce()
+                        + firstBlock.getTimestamp() + firstBlock.getTransactions();
         byte[] signature = firstBlock.getMinerSignature();
         assertNotNull(signature,"Erro assinatura do miner no bloco é igual a NULL");
 

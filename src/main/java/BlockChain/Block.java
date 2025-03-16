@@ -8,15 +8,10 @@ import java.util.Arrays;
 import java.util.Date;
 
 public class Block {
-    // TODO devemos 'ORDENAR' as transações (para garantir que o calculo da hash do bloco é o mesmo em todos os nós)
-    // TODO ajustar representação de transações para Class Transanctions
-    //private  String[] transactions;
     private ArrayList<Transaction> transactions;
     private String blockHash;
     private String  previousBlockHash;
-    // TODO: no timestamp o valor é o UTC?
     private long timestamp;
-    //TODO: qual o valor incial da nonce? ( pode ser 0 e depois vamos incrementando )
     private int nonce;
     private  byte[] minerSignature = null; // Digital Signature of this block's header with Priv. Key of the respectiv miner
     private PublicKey minerPublicKey = null; // Public key of this block miner
@@ -31,6 +26,11 @@ public class Block {
 
 
     /* Getter's & Setter's (most Setter's are there just for testing purposes) */
+
+    public ArrayList<Transaction> getTransactions() {
+        return transactions;
+    }
+
     public String getBlockHash() {
         return blockHash;
     }
