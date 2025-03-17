@@ -30,6 +30,7 @@ public class Client {
                 " 7 - Place Bid" + '\n' +
                 " 8 - Search for available Auctions" + '\n' +
                 " 9 - Get Peer Server info" + '\n' +
+                "10 - Get Peer Transaction pool" + '\n' +
                 " exit - Exit" + '\n' +
                 "----------------------------------";
     }
@@ -82,8 +83,11 @@ public class Client {
                 case "8": // Search for available auctions (that are still active)
                     System.out.println("TODO: Search for available auctions");
                     break;
-                case "9":
+                case "9": // Get Peer Server info
                     System.out.printf("Connected to Peer Server @%s %s\n",peerServerHost,peerServertPort);
+                    break;
+                case "10": // Get Peer Transaction pool
+                    System.out.println( sendMessageToPeer(peerServerHost, peerServertPort,"GET_TRANSACTION_POOL",null));
                     break;
                 case "exit": // Exit
                     end = true;
@@ -109,7 +113,6 @@ public class Client {
         System.out.println("Waiting for Response from Peer Server...");
         System.out.println(sendMessageToPeer(peerServerHost, peerServertPort,"ADD_TRANSACTION",createAuction));
 
-
     }
 
 
@@ -120,7 +123,9 @@ public class Client {
      * @param serverHost
      * @param serverPort
      * @param messageType can be: FIND_NODE , FIND_VALUE , PING , STORE , TODO talvez mais
-     * @return
+     * @param object  if it is null we are not sending anything to Peer's Server.Otherwise we
+     *                send the object.
+     * @return an object that contains response from Peer Server (either 'OK' or 'Error' message)
      */
     public static Object sendMessageToPeer (String serverHost,int serverPort,Object messageType, Object object){
         Object peerResponse = null;

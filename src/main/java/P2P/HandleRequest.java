@@ -71,7 +71,9 @@ public class HandleRequest implements Runnable {
                     case "ADD_TRANSACTION":
                         addTransactionHandler(client, in, out);
                         break;
-                    // todo can be any tupe of transaction (se for create, devemos guardar)
+                    case "GET_TRANSACTION_POOL":
+                        getTransactionPool(in,out);
+                        break;
                     default:
                         logger.warning("Received unknown message type: " + message);
                         break;
@@ -100,6 +102,7 @@ public class HandleRequest implements Runnable {
 
         }
     }
+
 
     private void findNodeHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
@@ -132,8 +135,6 @@ public class HandleRequest implements Runnable {
     private void mineHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         //TODO tenho de ter forma de parar o processo de mining caso
         //TODO recebe um bloco minerado !!!!!!
-
-
         // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
@@ -141,14 +142,19 @@ public class HandleRequest implements Runnable {
                     clientOut.writeObject("Dont have enough trasanctions to mine a block");
                     clientOut.flush();
                 } else {
-                    Block b = miner.mineBlock(transactionsPool, blockchain.getLastBlock().getBlockHash());
-                    if (!blockchain.addBlock(b, miner)) {
+                    String prevhash = "";
+                    if (blockchain.getLastBlock() != null)
+                        prevhash = blockchain.getLastBlock().getBlockHash();
+                    // Mine block and try to add to blockchain
+                    Block b = miner.mineBlock(new ArrayList<>(transactionsPool), prevhash);
+                    if (!blockchain.addBlock(b, miner)) { // if the block isn't valid send erro message
                         logger.severe("Error ocured while adding block to blockchain (mineHandle)");
                         return;
                     }
+
                     // Reset transactions pool
                     logger.info("Reseting Transactions pool");
-                    transactionsPool = new ArrayList<>();
+                    transactionsPool.clear();
 
                     clientOut.writeObject("OK");
                     clientOut.flush();
@@ -156,6 +162,7 @@ public class HandleRequest implements Runnable {
                 }
             } catch (Exception e) {
                 logger.severe("Error ocured (mineHandler)");
+                e.printStackTrace();
             }
         }
     }
@@ -169,30 +176,44 @@ public class HandleRequest implements Runnable {
      * @param clientOut
      */
     private void addTransactionHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-
         // Syncronize on transactionsPool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
                 logger.info("Adding transaction ...");
-                //clientOut.writeObject("OK");
-                //clientOut.flush();
+                clientOut.writeObject("OK");
+                clientOut.flush();
 
                 Object receivedObject = clientIn.readObject();
 
                 if (receivedObject instanceof Transaction) {
 
                     Transaction t = (Transaction) receivedObject;
+                    transactionsPool.add(t);
+                    clientOut.writeObject("OK");
+
                     System.out.println(t);
-                    clientOut.writeObject("OKOK");
 
                 } else {
                     clientOut.writeObject("Error: Only accept transactions");
                     logger.warning("Error: Did not receive a transaction (addTransactionHandler)");
                 }
             } catch (Exception e) {
-                logger.severe("Error ocured in addTransactionHandler");
+                logger.severe("Error ocured (addTransactionHandler)");
                 //throw new RuntimeException(e);
             }
         }
+
     }
+    private void getTransactionPool(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        // Syncronize on transactionsPool to avoid race conditions between threads
+        synchronized (transactionsPool){
+            try{
+                clientOut.writeObject(transactionsPool);
+                clientOut.flush();
+            }catch (Exception e){
+                logger.severe("Error ocured (getTransactionPool)");
+            }
+        }
+    }
+
 }

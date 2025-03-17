@@ -97,7 +97,7 @@ class Server implements Runnable {
 
                     // Creates a thread to handle client request.
                     // This allows the server to handle multiple clients simultaneously
-                    new Thread(new HandleRequest(client,this,logger));
+                    new Thread(new HandleRequest(client,this,logger)).start();
 
                 } catch (Exception e) {
                     e.printStackTrace();
