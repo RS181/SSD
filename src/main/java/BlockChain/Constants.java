@@ -9,7 +9,7 @@ public class Constants {
      * Defines the dificulty of mining.
      * Basicaly defines the number of initial zeros of a valid hash of a block
      */
-    public static final int DIFFICULTY = 3;
+    public static final int DIFFICULTY = 4;
 
 
 }

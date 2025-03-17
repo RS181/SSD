@@ -19,7 +19,7 @@ public class HandleRequest implements Runnable {
     Miner miner;
     Blockchain blockchain;
     Node kademliaNode;
-    ArrayList<Transaction> transactionsPool = new ArrayList<>();
+    ArrayList<Transaction> transactionsPool;
 
 
 
@@ -48,28 +48,27 @@ public class HandleRequest implements Runnable {
              * Read the message that was sent by client Socket
              */
             Object receivedObject = in.readObject();
-            if (receivedObject instanceof String) {
-                String message = (String) receivedObject;
+            if (receivedObject instanceof String message) {
                 System.out.println("Peer Server received: " + message);
 
                 switch (message) {
                     case "FIND_NODE":
-                        findNodeHandler(client, in, out);
+                        findNodeHandler(in, out);
                         break;
                     case "FIND_VALUE":
-                        findValueHandler(client, in, out);
+                        findValueHandler(in, out);
                         break;
                     case "PING":
-                        pingHandler(client, in, out);
+                        pingHandler(in, out);
                         break;
                     case "STORE":
-                        storeHandler(client, in, out);
+                        storeHandler(in, out);
                         break;
                     case "MINE":
-                        mineHandler(client, in, out);
+                        mineHandler(in, out);
                         break;
                     case "ADD_TRANSACTION":
-                        addTransactionHandler(client, in, out);
+                        addTransactionHandler(in, out);
                         break;
                     case "GET_TRANSACTION_POOL":
                         getTransactionPool(in,out);
@@ -104,22 +103,22 @@ public class HandleRequest implements Runnable {
     }
 
 
-    private void findNodeHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
         logger.warning("TODO: implementar FIND_NODE");
     }
 
-    private void findValueHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    private void findValueHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
         logger.warning("TODO: implementar FIND_VALUE");
     }
 
-    private void pingHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    private void pingHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
         logger.warning("TODO: implementar PING");
     }
 
-    private void storeHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    private void storeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
         logger.warning("TODO: implementar STORE");
     }
@@ -128,13 +127,13 @@ public class HandleRequest implements Runnable {
      * Responds with 'OK' to client if mining was sucessful.
      * Otherwise, gives an error message
      *
-     * @param client
      * @param clientIn
      * @param clientOut
      */
-    private void mineHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    private void mineHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         //TODO tenho de ter forma de parar o processo de mining caso
-        //TODO recebe um bloco minerado !!!!!!
+        // recebe um bloco minerado !!!!!!
+
         // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
@@ -171,11 +170,10 @@ public class HandleRequest implements Runnable {
      * Responds with 'OK' to client if mining was sucessful.
      * Otherwise, gives an error message
      *
-     * @param client
      * @param clientIn
      * @param clientOut
      */
-    private void addTransactionHandler(Socket client, ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    private void addTransactionHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on transactionsPool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
@@ -185,9 +183,8 @@ public class HandleRequest implements Runnable {
 
                 Object receivedObject = clientIn.readObject();
 
-                if (receivedObject instanceof Transaction) {
+                if (receivedObject instanceof Transaction t) {
 
-                    Transaction t = (Transaction) receivedObject;
                     transactionsPool.add(t);
                     clientOut.writeObject("OK");
 
