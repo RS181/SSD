@@ -1,20 +1,28 @@
 package P2P;
 
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import BlockChain.Block;
+import BlockChain.Blockchain;
+import BlockChain.Miner;
+import BlockChain.Transaction;
+import Kademlia.Node;
+
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
 
 /**
- * Class that represents a Peer in our project:
- *  TODO: Peer vai ter que ter acesso: Servidor, Blockchain, Miner e nó kademlia
+ * Class that represents a Peer in our project.
+ * A peer contains:
+ * --> Server thread that handles client request
+ * --> Blockchain
+ * --> Miner
+ * --> Kademlia Node
  */
 public class Peer {
     String host;
@@ -22,9 +30,11 @@ public class Peer {
     Logger logger;
 
 
+
     public Peer(String hostname,int port) {
-        host = hostname;
+        this.host = hostname;
         this.port = port;
+
         logger = Logger.getLogger("logfile");
         try {
             FileHandler handler = new FileHandler("./src/main/java/P2P/Logs/" + hostname + "_" + port + "_peer.log", false);
@@ -45,20 +55,33 @@ public class Peer {
 
         System.out.printf("new peer @ host=%s port=%s\n", args[0],args[1]);
         System.out.printf("(TODO) bootstrap peer @ host=%s port=%s\n",args[2],args[3]);
-        new Thread(new Server(args[0], Integer.parseInt(args[1]), peer.logger)).start();
+        new Thread(new Server(args[0], Integer.parseInt(args[1]), peer.logger,peer)).start();
     }
 }
 
+/**
+ * Server class that handles client requests
+ */
 class Server implements Runnable {
     String host;
     int port;
     ServerSocket server;
     Logger logger;
+    Peer peer;
+    Miner miner;
+    Blockchain blockchain;
+    Node kademliaNode;
 
-    public Server(String host, int port, Logger logger) throws Exception {
+    ArrayList<Transaction> transactionsPool = new ArrayList<>();
+
+    public Server(String host, int port, Logger logger,Peer peer) throws Exception {
         this.host = host;
         this.port = port;
         this.logger = logger;
+        this.peer = peer;
+        this.miner = new Miner();
+        this.blockchain = new Blockchain();
+        this.kademliaNode = new Node(host,port);
         server = new ServerSocket(port, 1, InetAddress.getByName(host));
     }
 
@@ -70,9 +93,11 @@ class Server implements Runnable {
                 try {
                     Socket client = server.accept();
                     String clientAddress = client.getInetAddress().getHostAddress();
-                    logger.info("server: new connection from " + clientAddress);
+                    logger.info("server: new connection from @" + clientAddress + " " + client.getPort());
 
-                    HandleRequest(client);
+                    // Creates a thread to handle client request.
+                    // This allows the server to handle multiple clients simultaneously
+                    new Thread(new HandleRequest(client,this,logger));
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -81,74 +106,6 @@ class Server implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Handles Request that came to this server's Peer
-     * @param client
-     */
-    private void HandleRequest(Socket client) {
-
-        try {
-            /*
-             * Prepare socket I/O channels
-             */
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-
-            /*
-             * Read the message that was sent by client Socket
-             */
-
-            String message = in.readLine();
-            System.out.println("Peer Server received: " + message);
-
-            switch (message){
-                case "FIND_NODE":
-                    findNodeHandler(client,in,out);
-                    break;
-                case "FIND_VALUE":
-                    findValueHandler(client,in,out);
-                    break;
-                case "PING":
-                    pingHandler(client,in,out);
-                    break;
-                case "STORE":
-                    storeHandler(client,in,out);
-                    break;
-                default:
-                    logger.warning("Received unknown message type: " + message);
-                    break;
-            }
-
-            /*
-             * send the response to client
-             */
-            out.println("< Fim de comunicação entre Cliente/Peer >");
-            out.flush();
-
-        } catch (Exception e){
-            logger.severe("Peer Server could not handle Request from @" + client.getPort());
-        }
-    }
-
-    private void findNodeHandler(Socket client, BufferedReader clientIn, PrintWriter clientOut) {
-        // TODO
-        logger.warning("TODO: implementar FIND_NODE");
-    }
-
-    private void findValueHandler(Socket client, BufferedReader clientIn, PrintWriter clientOut) {
-       // TODO
-        logger.warning("TODO: implementar FIND_VALUE");
-    }
-
-    private void pingHandler(Socket client, BufferedReader in, PrintWriter out) {
-        // TODO
-        logger.warning("TODO: implementar PING");
-    }
-    private void storeHandler(Socket client, BufferedReader in, PrintWriter out) {
-        // TODO
-        logger.warning("TODO: implementar STORE");
     }
 
 }
