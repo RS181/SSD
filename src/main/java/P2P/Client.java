@@ -31,6 +31,7 @@ public class Client {
                 " 8 - Search for available Auctions" + '\n' +
                 " 9 - Get Peer Server info" + '\n' +
                 "10 - Get Peer Transaction pool" + '\n' +
+                "11 - Get Peer blockchain" + '\n' +
                 " exit - Exit" + '\n' +
                 "----------------------------------";
     }
@@ -87,7 +88,10 @@ public class Client {
                     System.out.printf("Connected to Peer Server @%s %s\n",peerServerHost,peerServertPort);
                     break;
                 case "10": // Get Peer Transaction pool
-                    System.out.println( sendMessageToPeer(peerServerHost, peerServertPort,"GET_TRANSACTION_POOL",null));
+                    System.out.println(sendMessageToPeer(peerServerHost, peerServertPort,"GET_TRANSACTION_POOL",null));
+                    break;
+                case "11": // Get Peer blockchain
+                    System.out.println(sendMessageToPeer(peerServerHost,peerServertPort,"GET_BLOCKCHAIN",null));
                     break;
                 case "exit": // Exit
                     end = true;

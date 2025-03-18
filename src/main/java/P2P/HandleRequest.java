@@ -73,6 +73,9 @@ public class HandleRequest implements Runnable {
                     case "GET_TRANSACTION_POOL":
                         getTransactionPool(in,out);
                         break;
+                    case "GET_BLOCKCHAIN":
+                        getBlockchain(in,out);
+                        break;
                     default:
                         logger.warning("Received unknown message type: " + message);
                         break;
@@ -213,4 +216,15 @@ public class HandleRequest implements Runnable {
         }
     }
 
+    private void getBlockchain(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        // Syncronize on blockchain to avoid race conditions between threads
+        synchronized (blockchain){
+            try {
+                clientOut.writeObject(blockchain);
+                clientOut.flush();
+            } catch (Exception e){
+                logger.severe("Error ocured (getBlockchain)");
+            }
+        }
+    }
 }

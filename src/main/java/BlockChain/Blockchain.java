@@ -2,6 +2,7 @@ package BlockChain;
 
 import Cryptography.CryptoUtils;
 
+import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
  * -> add valid blocks to the chain
  *
  */
-public class Blockchain {
+public class Blockchain implements Serializable {
 
     private List<Block> blockchain = new ArrayList<>();
     private Block lastBlock;
