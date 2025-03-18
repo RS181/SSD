@@ -27,7 +27,7 @@ public class RoutingTable implements Serializable {
      * @param numberBuckets that are going to be created
      */
     private void initializeBucketList(int numberBuckets){
-        for (int i = 0 ; i < numberBuckets ; i++){
+        for (int i = 0 ; i <= numberBuckets ; i++){
             char[] c = new char[i];
             Arrays.fill(c, '0');
             String prefix = new String(c);
