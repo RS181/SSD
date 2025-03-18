@@ -2,10 +2,12 @@ package Kademlia;
 
 import Cryptography.CryptoUtils;
 
+import java.io.Serializable;
+
 /**
  * Class that represents a kademlia Node in a  p2p network
  */
-public class Node {
+public class Node implements Serializable {
     private String nodeId; // Unique Id
     private String ipAddr;
     private int port;
@@ -64,6 +66,11 @@ public class Node {
 
     @Override
     public String toString() {
-        return "[Node Id = " + nodeId + ", Ip address = "  + ipAddr + ", Port = " + port + "]";
+        return "[" +
+                "Node Id = "       + nodeId + ", " +
+                "Ip address = "  + ipAddr +   ", " +
+                "Port = "        + port   +
+                "]" + '\n' +
+                routingTable;
     }
 }

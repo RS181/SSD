@@ -1,5 +1,6 @@
 package Kademlia;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
  * Class that Represents a Routing table of a kademlia node
  *
  */
-public class RoutingTable {
+public class RoutingTable implements Serializable {
     String nodeId;
     int lengthOfNodeId; // determines the amount of buckets in the routing table
     List<Bucket> bucketList; // List of buckets (each Bucket contains a list of Node's)

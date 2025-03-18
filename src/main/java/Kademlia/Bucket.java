@@ -1,5 +1,6 @@
 package Kademlia;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * Class that represents a bucket a routing table of a Kademlia node
  */
-public class Bucket {
+public class Bucket implements Serializable {
 
     private String ownerNodeId; // Node Id of the owner of this bucket
     private String prefix; // Prefix of 0's of the bucket (represents the corresponding tree prefix of this bucket, see image to understand)

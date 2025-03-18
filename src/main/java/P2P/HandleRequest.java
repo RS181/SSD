@@ -76,6 +76,9 @@ public class HandleRequest implements Runnable {
                     case "GET_BLOCKCHAIN":
                         getBlockchain(in,out);
                         break;
+                    case "GET_KADEMLIA_NODE":
+                        getKademliaNode(in,out);
+                        break;
                     default:
                         logger.warning("Received unknown message type: " + message);
                         break;
@@ -104,7 +107,6 @@ public class HandleRequest implements Runnable {
 
         }
     }
-
 
     private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
@@ -136,6 +138,8 @@ public class HandleRequest implements Runnable {
     private void mineHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         //TODO tenho de ter forma de parar o processo de mining caso
         // recebe um bloco minerado !!!!!!
+
+        // Ver sugestão do chat gpt para lidar com isto acima
 
         // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
@@ -224,6 +228,18 @@ public class HandleRequest implements Runnable {
                 clientOut.flush();
             } catch (Exception e){
                 logger.severe("Error ocured (getBlockchain)");
+            }
+        }
+    }
+    private void getKademliaNode(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        // Syncronize on kademliaNode to avoid race conditions between threads
+        synchronized (kademliaNode){
+            try {
+                clientOut.writeObject(kademliaNode);
+                clientOut.flush();
+            } catch (Exception e){
+                logger.severe("Error ocured (getKademliaNode)");
+                e.printStackTrace();
             }
         }
     }

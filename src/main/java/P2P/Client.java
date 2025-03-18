@@ -29,9 +29,10 @@ public class Client {
                 " 6 - Create Auction" + '\n' +
                 " 7 - Place Bid" + '\n' +
                 " 8 - Search for available Auctions" + '\n' +
-                " 9 - Get Peer Server info" + '\n' +
-                "10 - Get Peer Transaction pool" + '\n' +
-                "11 - Get Peer blockchain" + '\n' +
+                " 9 - Get Server info" + '\n' +
+                "10 - Get Server Transaction pool" + '\n' +
+                "11 - Get Server blockchain" + '\n' +
+                "12 - Get Server Kademlia Node " + '\n' +
                 " exit - Exit" + '\n' +
                 "----------------------------------";
     }
@@ -84,14 +85,17 @@ public class Client {
                 case "8": // Search for available auctions (that are still active)
                     System.out.println("TODO: Search for available auctions");
                     break;
-                case "9": // Get Peer Server info
+                case "9": // Get Server info
                     System.out.printf("Connected to Peer Server @%s %s\n",peerServerHost,peerServertPort);
                     break;
-                case "10": // Get Peer Transaction pool
+                case "10": // Get Server Transaction pool
                     System.out.println(sendMessageToPeer(peerServerHost, peerServertPort,"GET_TRANSACTION_POOL",null));
                     break;
-                case "11": // Get Peer blockchain
+                case "11": // Get Server blockchain
                     System.out.println(sendMessageToPeer(peerServerHost,peerServertPort,"GET_BLOCKCHAIN",null));
+                    break;
+                case "12": // Get Server Kademlia Node
+                    System.out.println(sendMessageToPeer(peerServerHost,peerServertPort,"GET_KADEMLIA_NODE",null));
                     break;
                 case "exit": // Exit
                     end = true;
