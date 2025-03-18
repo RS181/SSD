@@ -12,11 +12,7 @@ import java.util.Comparator;
  *
  */
 public class Miner {
-
-    // TODO : definir o valor do reward por ter um mining sucedido
-    private double reward;
     private Block minedBlock;
-
     private PrivateKey privateKey;
     public  PublicKey publicKey;
 
