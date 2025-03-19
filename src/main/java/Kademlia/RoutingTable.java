@@ -10,12 +10,18 @@ import java.util.List;
  *
  */
 public class RoutingTable implements Serializable {
+    // Info of owner node of this routing table
     String nodeId;
+    String ipAddr;
+    int port;
+
     int lengthOfNodeId; // determines the amount of buckets in the routing table
     List<Bucket> bucketList; // List of buckets (each Bucket contains a list of Node's)
 
-    RoutingTable(String nodeId){
+    RoutingTable(String nodeId,String ipAddr, int port){
         this.nodeId = nodeId;
+        this.ipAddr = ipAddr;
+        this.port = port;
         this.lengthOfNodeId = nodeId.length();
         bucketList = new ArrayList<>(lengthOfNodeId);
         initializeBucketList(lengthOfNodeId);
@@ -32,9 +38,13 @@ public class RoutingTable implements Serializable {
             Arrays.fill(c, '0');
             String prefix = new String(c);
             Bucket b = new Bucket(nodeId,prefix,Constants.MAX_NUMBER_NODES);
+            // Add owner node of this routing table to respetiv bucket (prefix all 0's)
+            if(i == numberBuckets)
+                b.addNode(new Node(this.ipAddr,port,false));
             //System.out.println(b);
             bucketList.add(b);
         }
+
     }
 
     /**

@@ -13,17 +13,19 @@ public class Node implements Serializable {
     private int port;
     private RoutingTable routingTable;
 
-
     /**
      * Constructor for a Kademlia Node
      * @param ipAddr
      * @param port
+     * @param createRoutingTable indicates whether to create or not the routing table
+     *                           for this Kademlia Node
      */
-    public Node(String ipAddr, int port){
+    public Node(String ipAddr, int port, boolean createRoutingTable){
         this.ipAddr = ipAddr;
         this.port = port;
         this.nodeId = generateNodeId(ipAddr,port);
-        this.routingTable = new RoutingTable(nodeId);
+        if (createRoutingTable)
+            this.routingTable = new RoutingTable(nodeId,ipAddr,port);
     }
 
     /* Getter's */
@@ -71,6 +73,6 @@ public class Node implements Serializable {
                 "Ip address = "  + ipAddr +   ", " +
                 "Port = "        + port   +
                 "]" + '\n' +
-                routingTable;
+                (routingTable != null ? routingTable.toString() : "");
     }
 }
