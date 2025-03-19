@@ -81,7 +81,7 @@ class Server implements Runnable {
         this.peer = peer;
         this.miner = new Miner();
         this.blockchain = new Blockchain();
-        this.kademliaNode = new Node(host,port);
+        this.kademliaNode = new Node(host,port,true);
         server = new ServerSocket(port, 1, InetAddress.getByName(host));
     }
 
