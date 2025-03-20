@@ -72,7 +72,7 @@ public class Node implements Serializable {
                 "Node Id = "       + nodeId + ", " +
                 "Ip address = "  + ipAddr +   ", " +
                 "Port = "        + port   +
-                "]" + '\n' +
-                (routingTable != null ? routingTable.toString() : "");
+                "]" ; //+
+                //(routingTable != null ? routingTable.toString() : "");
     }
 }
