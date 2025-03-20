@@ -14,7 +14,7 @@ public class Bucket implements Serializable {
     private String ownerNodeId; // Node Id of the owner of this bucket
     private String prefix; // Prefix of 0's of the bucket (represents the corresponding tree prefix of this bucket, see image to understand)
     private int k; // Max number of nodes per bucket
-    private LinkedList<Node> nodeList = new LinkedList<>(); // List of Nodes in current bucket
+    private LinkedList<Node> nodeList; // List of Nodes in current bucket
 
     /**
      *
