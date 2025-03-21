@@ -12,6 +12,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+/**
+ * Class that handles client request's
+ */
 public class HandleRequest implements Runnable {
     Socket client;
     Server server;
@@ -235,7 +238,7 @@ public class HandleRequest implements Runnable {
         // Syncronize on kademliaNode to avoid race conditions between threads
         synchronized (kademliaNode){
             try {
-                clientOut.writeObject(kademliaNode);
+                clientOut.writeObject(kademliaNode + "\n" + kademliaNode.getRoutingTable());
                 clientOut.flush();
             } catch (Exception e){
                 logger.severe("Error ocured (getKademliaNode)");
