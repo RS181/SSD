@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
- * Class that handles client request's
+ * Class that handles client and other peer's request's
  */
 public class HandleRequest implements Runnable {
     Socket client;
@@ -82,6 +82,12 @@ public class HandleRequest implements Runnable {
                     case "GET_KADEMLIA_NODE":
                         getKademliaNode(in,out);
                         break;
+                    case "GET_SERVER_INFO":
+                        getServerInfo(in,out);
+                        break;
+                    case "STOP":
+                        server.stopAllThreads();
+                        break;
                     default:
                         logger.warning("Received unknown message type: " + message);
                         break;
@@ -142,8 +148,6 @@ public class HandleRequest implements Runnable {
         //TODO tenho de ter forma de parar o processo de mining caso
         // recebe um bloco minerado !!!!!!
 
-        // Ver sugestão do chat gpt para lidar com isto acima
-
         // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
@@ -167,7 +171,12 @@ public class HandleRequest implements Runnable {
 
                     clientOut.writeObject("OK");
                     clientOut.flush();
-                    System.out.println(blockchain);
+                    //System.out.println(blockchain);
+
+                    // send Stop message to stop all local threads
+                    // TODO mais a frente vou ter que fazer isto para todos os Peer's
+                    //Client.sendMessageToPeer(server.host,server.port,"STOP",null);
+
                 }
             } catch (Exception e) {
                 logger.severe("Error ocured (mineHandler)");
@@ -246,4 +255,20 @@ public class HandleRequest implements Runnable {
             }
         }
     }
+
+    private void getServerInfo(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        try{
+            clientOut.writeObject(
+                    "Address = " + server.host + '\n' +
+                    "Port = "    + server.port + '\n' +
+                    "Set of Neighbours = " + server.knowNeighbours + '\n'
+            );
+            clientOut.flush();
+        }catch (Exception e){
+            logger.severe("Error ocured (getServerInfo)");
+            e.printStackTrace();
+        }
+
+    }
+
 }

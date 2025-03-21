@@ -86,7 +86,7 @@ public class Client {
                     System.out.println("TODO: Search for available auctions");
                     break;
                 case "9": // Get Server info
-                    System.out.printf("Connected to Peer Server @%s %s\n",peerServerHost,peerServertPort);
+                    System.out.println(sendMessageToPeer(peerServerHost,peerServertPort,"GET_SERVER_INFO",null));
                     break;
                 case "10": // Get Server Transaction pool
                     System.out.println(sendMessageToPeer(peerServerHost, peerServertPort,"GET_TRANSACTION_POOL",null));
