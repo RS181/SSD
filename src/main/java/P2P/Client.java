@@ -38,17 +38,22 @@ public class Client {
     }
 
     public static void main(String[] args) {
+        System.out.println("Usage java Client <username> <peerServerHost> <peerServertPort>");
         Scanner scanner = new Scanner(System.in);
         String input = "";
         boolean end = false;
-        System.out.println("Please state your a username (has to be unique, but we don't check ;) )");
-        String username = scanner.nextLine();
+        //System.out.println("Please state you're username (has to be unique, but we don't check ;) )");
+        //String username = scanner.nextLine();
+        String username = args[0];
         System.out.println("Welcome " + username + " !!!");
 
-        System.out.println("Please state the hostname of Peer's server");
-        String peerServerHost = scanner.nextLine();
-        System.out.println("Please state the Port of Peer's server ");
-        int peerServertPort = scanner.nextInt();
+        //System.out.println("Please state the hostname of Peer's server");
+        //String peerServerHost = scanner.nextLine();
+        String peerServerHost = args[1];
+
+        //System.out.println("Please state the Port of Peer's server ");
+        //int peerServertPort = scanner.nextInt();
+        int peerServertPort = Integer.parseInt(args[2]);
 
         System.out.println(getOptionsMenu());
         while (!end){
