@@ -59,6 +59,8 @@ public class Miner {
      * --> Sort's the list of transanctions by transaction Id
      * --> Sign's the mined block with Miner's Digital Signature
      * --> Sets the publick key of miner that mined the block (to facilitate verification)
+     * @param tranctions list of transanctions
+     * @param previousBlockHash Hash of last block in the blockchain
      * @return The newly mined Block with Miner's signature set
      */
     public Block mineBlock(ArrayList<Transaction> tranctions, String previousBlockHash) {
@@ -86,7 +88,6 @@ public class Miner {
     }
 
     /**
-     * TODO: verificar se PoW está bem feito
      * Mines a block with a given dificulty (POW) and return's
      * @param b
      * @param dificulty
