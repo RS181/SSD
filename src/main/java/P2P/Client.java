@@ -15,8 +15,15 @@ import java.util.Scanner;
  */
 public class Client {
 
-    // TODO: cliente vai ter que ter acesso: Peer
+    private final String username;
+    private final String peerServerHost;
+    private final int peerServerPort;
 
+    public Client(String username,String peerServerHost, int peerServerPort){
+        this.username = username;
+        this.peerServerHost = peerServerHost;
+        this.peerServerPort = peerServerPort;
+    }
 
     private static String getOptionsMenu(){
         return "----------------------------------" + '\n' +
@@ -38,23 +45,23 @@ public class Client {
     }
 
     public static void main(String[] args) {
-        System.out.println("Usage java Client <username> <peerServerHost> <peerServertPort>");
-        Scanner scanner = new Scanner(System.in);
-        String input = "";
-        boolean end = false;
-        //System.out.println("Please state you're username (has to be unique, but we don't check ;) )");
-        //String username = scanner.nextLine();
+        if (args.length < 3) {
+            System.out.println("Usage: java Client <username> <peerServerHost> <peerServerPort>");
+            return;
+        }
+
         String username = args[0];
-        System.out.println("Welcome " + username + " !!!");
-
-        //System.out.println("Please state the hostname of Peer's server");
-        //String peerServerHost = scanner.nextLine();
         String peerServerHost = args[1];
+        int peerServerPort = Integer.parseInt(args[2]);
+        Client client = new Client(username,peerServerHost,peerServerPort);
+        client.start();
+    }
 
-        //System.out.println("Please state the Port of Peer's server ");
-        //int peerServertPort = scanner.nextInt();
-        int peerServertPort = Integer.parseInt(args[2]);
+    private  void start() {
+        Scanner scanner = new Scanner(System.in);
+        boolean end = false;
 
+        String input;
         System.out.println(getOptionsMenu());
         while (!end){
             System.out.printf("$ ");
@@ -79,10 +86,10 @@ public class Client {
                     System.out.println("TODO: STORE");
                     break;
                 case "5": // Mine a block
-                    clientMineHandler(peerServerHost, peerServertPort);
+                    clientMineHandler(peerServerHost, peerServerPort);
                     break;
                 case "6": // Create auction
-                    createAuctionHandler(scanner, username, peerServerHost, peerServertPort);
+                    createAuctionHandler(scanner, username, peerServerHost, peerServerPort);
                     break;
                 case "7": // Place Bid
                     System.out.println("TODO: Place Bid");
@@ -91,16 +98,16 @@ public class Client {
                     System.out.println("TODO: Search for available auctions");
                     break;
                 case "9": // Get Server info
-                    System.out.println(sendMessageToPeer(peerServerHost,peerServertPort,"GET_SERVER_INFO",null));
+                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_SERVER_INFO",null));
                     break;
                 case "10": // Get Server Transaction pool
-                    System.out.println(sendMessageToPeer(peerServerHost, peerServertPort,"GET_TRANSACTION_POOL",null));
+                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_TRANSACTION_POOL",null));
                     break;
                 case "11": // Get Server blockchain
-                    System.out.println(sendMessageToPeer(peerServerHost,peerServertPort,"GET_BLOCKCHAIN",null));
+                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_BLOCKCHAIN",null));
                     break;
                 case "12": // Get Server Kademlia Node
-                    System.out.println(sendMessageToPeer(peerServerHost,peerServertPort,"GET_KADEMLIA_NODE",null));
+                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_KADEMLIA_NODE",null));
                     break;
                 case "exit": // Exit
                     end = true;
@@ -113,18 +120,18 @@ public class Client {
     }
 
 
-    private static void clientMineHandler(String peerServerHost, int peerServertPort) {
+    private static void clientMineHandler(String peerServerHost, int peerServerPort) {
         System.out.println("Waiting for Response from Peer Server...");
-        System.out.println("Peer Server Response: " + sendMessageToPeer(peerServerHost, peerServertPort,"MINE",null));
+        System.out.println("Peer Server Response: " + sendMessageToPeer(peerServerHost, peerServerPort,"MINE",null));
     }
-    private static void createAuctionHandler(Scanner scanner, String username, String peerServerHost, int peerServertPort) {
+    private static void createAuctionHandler(Scanner scanner, String username, String peerServerHost, int peerServerPort) {
         System.out.println("Insert a name for the auction");
         String auctionId= scanner.nextLine();
         Transaction createAuction =
                 new Transaction(username, Transaction.TransactionType.CREATE_AUCTION,
                         auctionId,0,new Date().getTime());
         System.out.println("Waiting for Response from Peer Server...");
-        System.out.println(sendMessageToPeer(peerServerHost, peerServertPort,"ADD_TRANSACTION",createAuction));
+        System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",createAuction));
 
     }
 
