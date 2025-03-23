@@ -18,7 +18,6 @@ public class Blockchain implements Serializable {
     private List<Block> blockchain = new ArrayList<>();
     private Block lastBlock;
 
-
     /**
      * Default constructor
      */
@@ -90,13 +89,13 @@ public class Blockchain implements Serializable {
     /**
      * Check if the block we are trying to add to the chain is valid and also check
      * if the current  chain is valid.If so add's the given block to the blochain
-     * @param block that we want to add to the blockchain
-     * @param miner that mined the block
+     * @param block             that we want to add to the blockchain
+     * @param minerPublickKey   publick key of the miner that suposedely mined the block
      *
      * @return {@code true} if  the block was added, {@code false} otherwise
      */
-    public boolean addBlock(Block block,Miner miner){
-        if (!validateBlock(block,miner)) return false;
+    public boolean addBlock(Block block,PublicKey minerPublickKey){
+        if (!validateBlock(block,minerPublickKey)) return false;
 
         if(!checkCurrentChain()) return false;
         this.blockchain.add(block);
@@ -113,9 +112,9 @@ public class Blockchain implements Serializable {
      * (d) The Digital Signature of Miner of the block is valid
      *
      * @param block that we are validating
-     * @param miner that suposedely mined th block
+     * @param minerPublickKey publick key of the miner that suposedely mined the block
      */
-    private boolean validateBlock(Block block,Miner miner){
+    private boolean validateBlock(Block block,PublicKey minerPublickKey){
         String prefixString = new String(new char[Constants.DIFFICULTY]).replace('\0', '0');
         String blockHeader =
                 block.getBlockHash() + block.getPreviousBlockHash() + block.getNonce() + block.getTimestamp() + block.getTransactions();
@@ -130,7 +129,7 @@ public class Blockchain implements Serializable {
         if (minerSignature == null)
             d = false;
         else
-            d = CryptoUtils.verifySignature(miner.publicKey,blockHeader.getBytes(),minerSignature);
+            d = CryptoUtils.verifySignature(minerPublickKey,blockHeader.getBytes(),minerSignature);
 
         return a && b && c && d;
     }
