@@ -37,13 +37,13 @@ class BlockchainTest {
     @Test
     void addValidBlocks(){
         Block firstBlock = user1.mineBlock(startAuction,"");
-        assertTrue(blockchain.addBlock(firstBlock, user1),"Erro na adição do pimeiro bloco");
+        assertTrue(blockchain.addBlock(firstBlock, user1.publicKey),"Erro na adição do pimeiro bloco");
 
         Block secondBlock = user1.mineBlock(placeBids,firstBlock.getBlockHash());
-        assertTrue(blockchain.addBlock(secondBlock, user1),"Erro na adição do segundo bloco");
+        assertTrue(blockchain.addBlock(secondBlock, user1.publicKey),"Erro na adição do segundo bloco");
 
         Block thirdBlock = user1.mineBlock(closeAuction,secondBlock.getBlockHash());
-        assertTrue(blockchain.addBlock(thirdBlock, user1),"Erro na adição do terceiro bloco");
+        assertTrue(blockchain.addBlock(thirdBlock, user1.publicKey),"Erro na adição do terceiro bloco");
 
         assertTrue(blockchain.checkCurrentChain());
     }
@@ -52,7 +52,7 @@ class BlockchainTest {
     @Test
     void checkBlockPow_1(){
         Block firstBlock = new Block(startAuction,"");
-        assertFalse(blockchain.addBlock(firstBlock, user1),"Erro não verificou corretamente PoW de um  bloco antes de adiciona-lo a Blockchain");
+        assertFalse(blockchain.addBlock(firstBlock, user1.publicKey),"Erro não verificou corretamente PoW de um  bloco antes de adiciona-lo a Blockchain");
     }
 
     @DisplayName("Try to add  Block that wasn't properly mined (Blockchain with 1 Block)")
@@ -60,11 +60,11 @@ class BlockchainTest {
     void checkBlockPow_2(){
         //Add First valid mined block
         Block firstBlock = user1.mineBlock(startAuction,"");
-        assertTrue(blockchain.addBlock(firstBlock, user1),"Erro na adição do pimeiro bloco");
+        assertTrue(blockchain.addBlock(firstBlock, user1.publicKey),"Erro na adição do pimeiro bloco");
 
         //Add Second invalid block
         Block secondBlock = new Block(placeBids,firstBlock.getBlockHash());
-        assertFalse(blockchain.addBlock(secondBlock, user1),"Erro não verificou corretamente PoW de um  bloco antes de adiciona-lo a Blockchain");
+        assertFalse(blockchain.addBlock(secondBlock, user1.publicKey),"Erro não verificou corretamente PoW de um  bloco antes de adiciona-lo a Blockchain");
     }
 
     @DisplayName("Add valid Block, and change the original miner signature")
@@ -102,14 +102,14 @@ class BlockchainTest {
     void changeBlockSignatureInBlockchain(){
         //Create a Blockchain with valid blocks ( mined by diferent miner's)
         Block firstBlock = user1.mineBlock(startAuction,"");
-        assertTrue(blockchain.addBlock(firstBlock, user1),"Erro na adição do pimeiro bloco");
+        assertTrue(blockchain.addBlock(firstBlock, user1.publicKey),"Erro na adição do pimeiro bloco");
 
 
         Block secondBlock = user2.mineBlock(placeBids,blockchain.getLastBlock().getBlockHash());
-        assertTrue(blockchain.addBlock(secondBlock,user2),"Erro na adição do segundo bloco");
+        assertTrue(blockchain.addBlock(secondBlock,user2.publicKey),"Erro na adição do segundo bloco");
 
         Block thirdBlock = user2.mineBlock(closeAuction,blockchain.getLastBlock().getBlockHash());
-        assertTrue(blockchain.addBlock(thirdBlock,user2), "Erro na adição do terceiro bloco");
+        assertTrue(blockchain.addBlock(thirdBlock,user2.publicKey), "Erro na adição do terceiro bloco");
 
         // Change the Miner's signature of a Block in the Blockchain
         String secondblockHeader =
@@ -121,7 +121,7 @@ class BlockchainTest {
 
         // Try to add new Valid block to a tampered blockchain
         Block fourthBlock = user1.mineBlock(closeAuction,blockchain.getLastBlock().getBlockHash());
-        assertFalse(blockchain.addBlock(fourthBlock, user1),"Erro Blockchain tem bloco invalido, e adicionou bloco");
+        assertFalse(blockchain.addBlock(fourthBlock, user1.publicKey),"Erro Blockchain tem bloco invalido, e adicionou bloco");
 
 
         System.out.println(blockchain);
@@ -134,14 +134,14 @@ class BlockchainTest {
     void changeBlockHashInBlockChain(){
         //Create a Blockchain with valid blocks ( mined by diferent miner's)
         Block firstBlock = user1.mineBlock(startAuction,"");
-        assertTrue(blockchain.addBlock(firstBlock, user1),"Erro na adição do pimeiro bloco");
+        assertTrue(blockchain.addBlock(firstBlock, user1.publicKey),"Erro na adição do pimeiro bloco");
 
 
         Block secondBlock = user2.mineBlock(placeBids,blockchain.getLastBlock().getBlockHash());
-        assertTrue(blockchain.addBlock(secondBlock,user2),"Erro na adição do segundo bloco");
+        assertTrue(blockchain.addBlock(secondBlock,user2.publicKey),"Erro na adição do segundo bloco");
 
         Block thirdBlock = user2.mineBlock(closeAuction,blockchain.getLastBlock().getBlockHash());
-        assertTrue(blockchain.addBlock(thirdBlock,user2));
+        assertTrue(blockchain.addBlock(thirdBlock,user2.publicKey));
 
         assertTrue(blockchain.checkCurrentChain(),"Erro checkCurrentChain devia retornar verdadeiro");
 
@@ -158,13 +158,13 @@ class BlockchainTest {
     void changeBlockPrevHashInBlockChain(){
         //Create a Blockchain with valid blocks ( mined by diferent miner's)
         Block firstBlock = user1.mineBlock(startAuction,"");
-        assertTrue(blockchain.addBlock(firstBlock, user1),"Erro na adição do pimeiro bloco");
+        assertTrue(blockchain.addBlock(firstBlock, user1.publicKey),"Erro na adição do pimeiro bloco");
 
         Block secondBlock = user2.mineBlock(placeBids,blockchain.getLastBlock().getBlockHash());
-        assertTrue(blockchain.addBlock(secondBlock,user2),"Erro na adição do segundo bloco");
+        assertTrue(blockchain.addBlock(secondBlock,user2.publicKey),"Erro na adição do segundo bloco");
 
         Block thirdBlock = user2.mineBlock(closeAuction,blockchain.getLastBlock().getBlockHash());
-        assertTrue(blockchain.addBlock(thirdBlock,user2));
+        assertTrue(blockchain.addBlock(thirdBlock,user2.publicKey));
 
         assertTrue(blockchain.checkCurrentChain(),"Erro checkCurrentChain devia retornar verdadeiro");
 
