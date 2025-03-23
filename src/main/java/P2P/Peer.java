@@ -121,7 +121,10 @@ class Server implements Runnable {
     }
 
 
-    // Stops all threads by closing ClientHandler client socket
+    /**
+     * Stop all threads by closing  ClientHandler client socket and
+     * reset's list of active clients
+     */
     public void stopAllThreads() {
         for (ClientHandler h : activeClients) {
             try {

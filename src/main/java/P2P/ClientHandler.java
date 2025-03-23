@@ -27,8 +27,6 @@ public class ClientHandler implements Runnable {
     ArrayList<Transaction> transactionsPool;
 
 
-
-
     public ClientHandler(Socket client, Server server, Logger logger) {
         this.client = client;
         this.server = server;
@@ -69,22 +67,22 @@ public class ClientHandler implements Runnable {
                         storeHandler(in, out);
                         break;
                     case "MINE":
-                        mineHandler(in, out);
+                        mineHandler(out);
                         break;
                     case "ADD_TRANSACTION":
                         addTransactionHandler(in, out);
                         break;
                     case "GET_TRANSACTION_POOL":
-                        getTransactionPool(in,out);
+                        getTransactionPool(out);
                         break;
                     case "GET_BLOCKCHAIN":
-                        getBlockchain(in,out);
+                        getBlockchain(out);
                         break;
                     case "GET_KADEMLIA_NODE":
-                        getKademliaNode(in,out);
+                        getKademliaNode(out);
                         break;
                     case "GET_SERVER_INFO":
-                        getServerInfo(in,out);
+                        getServerInfo(out);
                         break;
                     case "STOP": // Stop Mining block
                         server.stopAllThreads();
@@ -108,9 +106,9 @@ public class ClientHandler implements Runnable {
             client.close();
             System.out.println("closed client connection");
         } catch (SocketException e) {
-            logger.warning("Caught SocketException in ClientHandler (run)" );
+            logger.warning("Caught SocketException in ClientHandler (run)");
             //e.printStackTrace();
-        } catch (IOException | ClassNotFoundException e){
+        } catch (IOException | ClassNotFoundException e) {
             logger.warning("Caught IOException or ClassNotFoundException in ClientHandler (run)");
             //e.printStackTrace();
         }
@@ -133,13 +131,22 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Responds with 'OK' to client if mining was sucessful.
-     * Otherwise, gives an error message
+     * Handles the mining process and responds to the client with the result.
+     * <p>
+     * If there are not enough transactions to mine a block, an error message is sent.
+     * Otherwise, a new block is mined and added to the blockchain. If the mining is
+     * successful, the transaction pool is cleared, and a "STOP" message is sent to
+     * all known neighbors to halt their mining processes.
+     * </p>
      *
-     * @param clientIn
-     * @param clientOut
+     * <p>
+     * This method synchronizes on the {@code transactionsPool} to prevent race conditions
+     * between threads.
+     * </p>
+     *
+     * @param clientOut the output stream of the client
      */
-    private void mineHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    private void mineHandler(ObjectOutputStream clientOut) {
         // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
@@ -150,10 +157,11 @@ public class ClientHandler implements Runnable {
                     String prevhash = "";
                     if (blockchain.getLastBlock() != null)
                         prevhash = blockchain.getLastBlock().getBlockHash();
+
                     // Mine block and try to add to blockchain
                     Block b = miner.mineBlock(new ArrayList<>(transactionsPool), prevhash);
 
-
+                    // Check if client's socket is still open
                     if (!client.isClosed()) {
                         System.out.println("Client Socket is open");
                         if (!blockchain.addBlock(b, miner)) { // if the block isn't valid send erro message
@@ -168,14 +176,12 @@ public class ClientHandler implements Runnable {
                         clientOut.flush();
 
                         // send Stop message to stop all Threads of Neighbours
-                        for (Node n : server.knowNeighbours){
-                            logger.info("Sending STOP to @" + n.getIpAddr() + " " + n.getPort() );
-                            Client.sendMessageToPeer(n.getIpAddr(),n.getPort(),"STOP",null);
+                        for (Node n : server.knowNeighbours) {
+                            logger.info("Sending STOP to @" + n.getIpAddr() + " " + n.getPort());
+                            Client.sendMessageToPeer(n.getIpAddr(), n.getPort(), "STOP", null);
                         }
-                    }else {
+                    } else
                         System.out.println("Client Socket is closed");
-                    }
-
                 }
             } catch (SocketException e) {
                 logger.warning("Socket Closed while peer was mining (mineHandler)");
@@ -183,16 +189,23 @@ public class ClientHandler implements Runnable {
             } catch (IOException e) {
                 logger.warning("Error ocured in I/O (mineHandler)");
             }
-
         }
     }
 
     /**
-     * Responds with 'OK' to client if mining was sucessful.
-     * Otherwise, gives an error message
+     * Handles the addition of a transaction sent by the client.
+     * <p>
+     * If a valid transaction is received, it is added to the transaction pool,
+     * and the client is notified with an 'OK' response. If the received object
+     * is not a valid transaction, an error message is sent instead.
+     * </p>
+     * <p>
+     * This method synchronizes on the {@code transactionsPool} to prevent race conditions
+     * between threads.
+     * </p>
      *
-     * @param clientIn
-     * @param clientOut
+     * @param clientIn the input stream of the client
+     * @param clientOut the output stream of the client
      */
     private void addTransactionHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on transactionsPool to avoid race conditions between threads
@@ -216,55 +229,86 @@ public class ClientHandler implements Runnable {
             }
         }
     }
-    private void getTransactionPool(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+
+    /**
+     *  Sends the transaction pool stored in the peer to the client.
+     * <p>
+     * This method synchronizes on the {@code transactionsPool} to prevent race conditions
+     * between threads. It then writes the transaction pool to the given output stream.
+     * </p>
+     *
+     * @param clientOut the output stream of the client
+     */
+    private void getTransactionPool(ObjectOutputStream clientOut) {
         // Syncronize on transactionsPool to avoid race conditions between threads
-        synchronized (transactionsPool){
-            try{
+        synchronized (transactionsPool) {
+            try {
                 clientOut.writeObject(transactionsPool);
                 clientOut.flush();
-            }catch (Exception e){
+            } catch (Exception e) {
                 logger.severe("Error ocured (getTransactionPool)");
             }
         }
     }
 
-    private void getBlockchain(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+    /**
+     *  Sends the blockchain stored in the peer to the client.
+     * <p>
+     * This method synchronizes on the {@code blockchain} to prevent race conditions
+     * between threads. It then writes the blockchain to the given output stream.
+     * </p>
+     *
+     * @param clientOut the output stream of the client
+     */
+    private void getBlockchain(ObjectOutputStream clientOut) {
         // Syncronize on blockchain to avoid race conditions between threads
-        synchronized (blockchain){
+        synchronized (blockchain) {
             try {
                 clientOut.writeObject(blockchain);
                 clientOut.flush();
-            } catch (Exception e){
+            } catch (Exception e) {
                 logger.severe("Error ocured (getBlockchain)");
             }
         }
     }
-    private void getKademliaNode(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+
+    /**
+     *  Sends the kademlia Node info stored in the peer to the client.
+     * <p>
+     * This method synchronizes on the {@code kademliaNode} to prevent race conditions
+     * between threads. It then writes the kademlia Node info to the given output stream.
+     * </p>
+     *
+     * @param clientOut the output stream of the client
+     */
+    private void getKademliaNode(ObjectOutputStream clientOut) {
         // Syncronize on kademliaNode to avoid race conditions between threads
-        synchronized (kademliaNode){
+        synchronized (kademliaNode) {
             try {
                 clientOut.writeObject(kademliaNode + "\n" + kademliaNode.getRoutingTable());
                 clientOut.flush();
-            } catch (Exception e){
+            } catch (Exception e) {
                 logger.severe("Error ocured (getKademliaNode)");
             }
         }
     }
 
-    private void getServerInfo(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        try{
+    /**
+     *  Sends the Peer Server info to the client.
+     *
+     * @param clientOut the output stream of the client
+     */
+    private void getServerInfo(ObjectOutputStream clientOut) {
+        try {
             clientOut.writeObject(
-                    "Address = " + server.host + '\n' +
-                    "Port = "    + server.port + '\n' +
-                    "Set of Neighbours = " + server.knowNeighbours + '\n'
+                            "Address = " + server.host + '\n' +
+                            "Port = " + server.port + '\n' +
+                            "Set of Neighbours = " + server.knowNeighbours + '\n'
             );
             clientOut.flush();
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.severe("Error ocured (getServerInfo)");
         }
     }
-
-
-
 
 }
