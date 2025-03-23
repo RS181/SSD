@@ -69,6 +69,9 @@ public class ClientHandler implements Runnable {
                     case "MINE":
                         mineHandler(out);
                         break;
+                    case "ADD_MINED_BLOCK": // Sent from Peer to Peer
+                        addMinedBlockHandler(in,out);
+                        break;
                     case "ADD_TRANSACTION":
                         addTransactionHandler(in, out);
                         break;
@@ -113,6 +116,7 @@ public class ClientHandler implements Runnable {
             //e.printStackTrace();
         }
     }
+
 
     private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
@@ -164,7 +168,7 @@ public class ClientHandler implements Runnable {
                     // Check if client's socket is still open
                     if (!client.isClosed()) {
                         System.out.println("Client Socket is open");
-                        if (!blockchain.addBlock(b, miner)) { // if the block isn't valid send erro message
+                        if (!blockchain.addBlock(b, miner.publicKey)) { // if the block isn't valid send erro message
                             logger.severe("Error ocured while adding block to blockchain (mineHandle)");
                             return;
                         }
@@ -175,10 +179,13 @@ public class ClientHandler implements Runnable {
                         clientOut.writeObject("OK");
                         clientOut.flush();
 
-                        // send Stop message to stop all Threads of Neighbours
+
                         for (Node n : server.knowNeighbours) {
                             logger.info("Sending STOP to @" + n.getIpAddr() + " " + n.getPort());
+                            // send STOP message to stop all Threads of Neighbours
                             Client.sendMessageToPeer(n.getIpAddr(), n.getPort(), "STOP", null);
+                            // send ADD_MINED_BLOCK message to add block to Neighbours blockchain
+                            Client.sendMessageToPeer(n.getIpAddr(),n.getPort(),"ADD_MINED_BLOCK",b);
                         }
                     } else
                         System.out.println("Client Socket is closed");
@@ -190,6 +197,31 @@ public class ClientHandler implements Runnable {
                 logger.warning("Error ocured in I/O (mineHandler)");
             }
         }
+    }
+
+    private void addMinedBlockHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        // Syncronize on blockchain to avoid race conditions between threads
+        synchronized (blockchain){
+                try{
+                    logger.info("Adding Mined block sent by peer ...");
+                    clientOut.writeObject("OK");
+                    clientOut.flush();
+
+                    Object receivedObject = clientIn.readObject();
+
+                    if (receivedObject instanceof Block b){
+                        System.out.println("RECEIVED BLOCK FROM PEER");
+                        blockchain.addBlock(b,b.getMinerPublicKey());
+                        clientOut.writeObject("OK");
+                    }else {
+                        clientOut.writeObject("Error: Exepted block but receveid somethin else");
+                        logger.warning("Error: Did not receive a block (addMinedBlockHandler)");
+                    }
+                }catch (Exception e){
+                    logger.severe("Error ocured (addMinedBlockHandler)");
+                }
+        }
+
     }
 
     /**
