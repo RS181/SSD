@@ -6,9 +6,11 @@ import BlockChain.Miner;
 import BlockChain.Transaction;
 import Kademlia.Node;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -46,7 +48,6 @@ public class HandleRequest implements Runnable {
              */
             ObjectInputStream in = new ObjectInputStream(client.getInputStream());
             ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
-
             /*
              * Read the message that was sent by client Socket
              */
@@ -95,46 +96,39 @@ public class HandleRequest implements Runnable {
             } else {
                 logger.warning("Received an unknown object type");
             }
-
             /*
              * send the response to client
              */
             out.writeObject("< Fim de comunicação entre Cliente/Peer >");
             out.flush();
-
             /*
              * close client socket
              */
-
             client.close();
             System.out.println("closed client connection");
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.severe("Peer Server could not handle Request from @" + client.getPort());
-
+        } catch (SocketException e) {
+            logger.warning("Caught SocketException in HandleRequest (run)" );
+            //e.printStackTrace();
+        } catch (IOException | ClassNotFoundException e){
+            logger.warning("Caught IOException or ClassNotFoundException in HandleRequest (run)");
+            //e.printStackTrace();
         }
     }
 
     private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
-        logger.warning("TODO: implementar FIND_NODE");
     }
 
     private void findValueHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
-        logger.warning("TODO: implementar FIND_VALUE");
     }
 
     private void pingHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
-        logger.warning("TODO: implementar PING");
     }
 
     private void storeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
-        logger.warning("TODO: implementar STORE");
     }
 
     /**
@@ -145,9 +139,6 @@ public class HandleRequest implements Runnable {
      * @param clientOut
      */
     private void mineHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        //TODO tenho de ter forma de parar o processo de mining caso
-        // recebe um bloco minerado !!!!!!
-
         // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
@@ -160,28 +151,38 @@ public class HandleRequest implements Runnable {
                         prevhash = blockchain.getLastBlock().getBlockHash();
                     // Mine block and try to add to blockchain
                     Block b = miner.mineBlock(new ArrayList<>(transactionsPool), prevhash);
-                    if (!blockchain.addBlock(b, miner)) { // if the block isn't valid send erro message
-                        logger.severe("Error ocured while adding block to blockchain (mineHandle)");
-                        return;
+
+
+                    if (!client.isClosed()) {
+                        System.out.println("Client Socket is open");
+                        if (!blockchain.addBlock(b, miner)) { // if the block isn't valid send erro message
+                            logger.severe("Error ocured while adding block to blockchain (mineHandle)");
+                            return;
+                        }
+                        // Reset transactions pool
+                        logger.info("Reseting Transactions pool");
+                        transactionsPool.clear();
+
+                        clientOut.writeObject("OK");
+                        clientOut.flush();
+
+                        // send Stop message to stop all Threads of Neighbours
+                        for (Node n : server.knowNeighbours){
+                            logger.info("Sending STOP to @" + n.getIpAddr() + " " + n.getPort() );
+                            Client.sendMessageToPeer(n.getIpAddr(),n.getPort(),"STOP",null);
+                        }
+                    }else {
+                        System.out.println("Client Socket is closed");
                     }
 
-                    // Reset transactions pool
-                    logger.info("Reseting Transactions pool");
-                    transactionsPool.clear();
-
-                    clientOut.writeObject("OK");
-                    clientOut.flush();
-                    //System.out.println(blockchain);
-
-                    // send Stop message to stop all local threads
-                    // TODO mais a frente vou ter que fazer isto para todos os Peer's
-                    //Client.sendMessageToPeer(server.host,server.port,"STOP",null);
-
                 }
-            } catch (Exception e) {
-                logger.severe("Error ocured (mineHandler)");
-                e.printStackTrace();
+            } catch (SocketException e) {
+                logger.warning("Socket Closed while peer was mining (mineHandler)");
+                return;
+            } catch (IOException e) {
+                logger.warning("Error ocured in I/O (mineHandler)");
             }
+
         }
     }
 
@@ -203,22 +204,16 @@ public class HandleRequest implements Runnable {
                 Object receivedObject = clientIn.readObject();
 
                 if (receivedObject instanceof Transaction t) {
-
                     transactionsPool.add(t);
                     clientOut.writeObject("OK");
-
-                    System.out.println(t);
-
                 } else {
                     clientOut.writeObject("Error: Only accept transactions");
                     logger.warning("Error: Did not receive a transaction (addTransactionHandler)");
                 }
             } catch (Exception e) {
                 logger.severe("Error ocured (addTransactionHandler)");
-                //throw new RuntimeException(e);
             }
         }
-
     }
     private void getTransactionPool(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on transactionsPool to avoid race conditions between threads
@@ -251,7 +246,6 @@ public class HandleRequest implements Runnable {
                 clientOut.flush();
             } catch (Exception e){
                 logger.severe("Error ocured (getKademliaNode)");
-                e.printStackTrace();
             }
         }
     }
@@ -266,9 +260,10 @@ public class HandleRequest implements Runnable {
             clientOut.flush();
         }catch (Exception e){
             logger.severe("Error ocured (getServerInfo)");
-            e.printStackTrace();
         }
-
     }
+
+
+
 
 }
