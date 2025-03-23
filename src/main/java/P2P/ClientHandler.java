@@ -86,8 +86,9 @@ public class ClientHandler implements Runnable {
                     case "GET_SERVER_INFO":
                         getServerInfo(in,out);
                         break;
-                    case "STOP":
+                    case "STOP": // Stop Mining block
                         server.stopAllThreads();
+                        server.miner.stopMining();
                         break;
                     default:
                         logger.warning("Received unknown message type: " + message);

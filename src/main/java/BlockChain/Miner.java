@@ -15,6 +15,7 @@ public class Miner {
     private Block minedBlock;
     private PrivateKey privateKey;
     public  PublicKey publicKey;
+    private boolean stopMining; // indicates if a miner has to stop mining
 
     /**
      * Constructor of a Miner:
@@ -69,6 +70,10 @@ public class Miner {
         tranctions.sort(Comparator.comparing(Transaction::getTransactionId));
         this.minedBlock = new Block(tranctions,previousBlockHash);
         minedBlock = proofOfWork(minedBlock,Constants.DIFFICULTY);
+        if (stopMining) { // Check if miner 'received' stop signal (if so return null)
+            stopMining = false; // reset
+            return null;
+        }
         //Signs the block
         signBlockHeader();
         // Sets the public key of miner (to allow for later verification of Signature)
@@ -96,16 +101,25 @@ public class Miner {
     public Block proofOfWork(Block b, int dificulty){
         String prefixString = new String(new char[dificulty]).replace('\0','0');
         String hash = b.getBlockHash();
-
-        while (!hash.substring(0,dificulty).equals(prefixString)){
+        while (!hash.substring(0,dificulty).equals(prefixString) && !stopMining){
             b.incrementNonce();
             b.calculateBlockHash();
             hash = b.getBlockHash();
             //System.out.println(hash.substring(0,dificulty));
         }
-        System.out.println("Mined Block !! ");
-        System.out.println("Block hash: " + b.getBlockHash());
-        System.out.println("Nonce: " + b.getNonce());
+
+        if(!stopMining) {
+            System.out.println("Mined Block !! ");
+            System.out.println("Block hash: " + b.getBlockHash());
+            System.out.println("Nonce: " + b.getNonce());
+        }else {
+            System.out.println("Mining was STOPPED !!");
+        }
         return b;
+    }
+
+
+    public void stopMining(){
+        stopMining = true;
     }
 }
