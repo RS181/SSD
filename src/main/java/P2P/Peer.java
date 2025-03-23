@@ -81,6 +81,23 @@ class Server implements Runnable {
     ArrayList<Transaction> transactionsPool = new ArrayList<>();
     private CopyOnWriteArrayList<ClientHandler> activeClients = new CopyOnWriteArrayList<>(); //thread-safe implementation of a list
 
+
+    /**
+     * Initializes a new instance of the {@code Server} class.
+     * <p>
+     * This constructor sets up the server with the specified host, port, and logging system.
+     * It also initializes a {@code Peer}, a {@code Miner}, a {@code Blockchain}, and a
+     * {@code kademliaNode}. Additionally, it sets up the list of known neighbors and updates the
+     * Kademlia routing table using the provided bootstrap nodes.
+     * </p>
+     *
+     * @param host           the IP address of the server
+     * @param port           the port on which the server will listen
+     * @param logger         the logger instance for logging messages
+     * @param peer           the peer instance associated with this server
+     * @param bootstrapNodes a list of bootstrap nodes to initialize the network
+     * @throws Exception if an error occurs while setting up the server socket
+     */
     public Server(String host, int port, Logger logger, Peer peer, ArrayList<Node> bootstrapNodes) throws Exception {
         this.host = host;
         this.port = port;
@@ -89,8 +106,12 @@ class Server implements Runnable {
         this.miner = new Miner();
         this.blockchain = new Blockchain();
         this.kademliaNode = new Node(host, port, true);
-        for (Node neihbour : bootstrapNodes)
+
+        // Initialize knowNeighbours and Routing table of kademlia Node
+        for (Node neihbour : bootstrapNodes) {
             knowNeighbours.add(neihbour);
+            kademliaNode.addToRoutingTable(neihbour);
+        }
         server = new ServerSocket(port, 1, InetAddress.getByName(host));
     }
 

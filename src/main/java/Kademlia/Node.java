@@ -65,6 +65,13 @@ public class Node implements Serializable {
         return String.format("%8s", Integer.toBinaryString(first8Bits)).replace(' ', '0'); // Ensures 8-bit format
     }
 
+    /**
+     * Adds node to Routing table
+     * @param n
+     */
+    public  void addToRoutingTable(Node n){
+        routingTable.addNodeToBucketList(n);
+    }
 
     @Override
     public String toString() {
