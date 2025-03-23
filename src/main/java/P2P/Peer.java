@@ -79,7 +79,7 @@ class Server implements Runnable {
     Node kademliaNode;
     Set<Node> knowNeighbours = new HashSet<>(); // Set of neighbours this peer knows
     ArrayList<Transaction> transactionsPool = new ArrayList<>();
-    private CopyOnWriteArrayList<HandleRequest> activeClients = new CopyOnWriteArrayList<>(); //thread-safe implementation of a list
+    private CopyOnWriteArrayList<ClientHandler> activeClients = new CopyOnWriteArrayList<>(); //thread-safe implementation of a list
 
     public Server(String host, int port, Logger logger, Peer peer, ArrayList<Node> bootstrapNodes) throws Exception {
         this.host = host;
@@ -106,7 +106,7 @@ class Server implements Runnable {
 
                     // Creates a thread to handle client request.
                     // This allows the server to handle multiple clients simultaneously
-                    HandleRequest requestHandler = new HandleRequest(client, this, logger);
+                    ClientHandler requestHandler = new ClientHandler(client, this, logger);
                     activeClients.add(requestHandler);
                     new Thread(requestHandler).start();
 
@@ -121,9 +121,9 @@ class Server implements Runnable {
     }
 
 
-    // Stops all threads by closing HandleRequest client socket
+    // Stops all threads by closing ClientHandler client socket
     public void stopAllThreads() {
-        for (HandleRequest h : activeClients) {
+        for (ClientHandler h : activeClients) {
             try {
                 h.client.close();
 

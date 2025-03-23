@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 /**
  * Class that handles client and other peer's request's
  */
-public class HandleRequest implements Runnable {
+public class ClientHandler implements Runnable {
     Socket client;
     Server server;
     Logger logger;
@@ -29,7 +29,7 @@ public class HandleRequest implements Runnable {
 
 
 
-    public HandleRequest(Socket client, Server server, Logger logger) {
+    public ClientHandler(Socket client, Server server, Logger logger) {
         this.client = client;
         this.server = server;
         this.miner = server.miner;
@@ -107,10 +107,10 @@ public class HandleRequest implements Runnable {
             client.close();
             System.out.println("closed client connection");
         } catch (SocketException e) {
-            logger.warning("Caught SocketException in HandleRequest (run)" );
+            logger.warning("Caught SocketException in ClientHandler (run)" );
             //e.printStackTrace();
         } catch (IOException | ClassNotFoundException e){
-            logger.warning("Caught IOException or ClassNotFoundException in HandleRequest (run)");
+            logger.warning("Caught IOException or ClassNotFoundException in ClientHandler (run)");
             //e.printStackTrace();
         }
     }
