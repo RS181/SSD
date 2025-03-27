@@ -54,6 +54,7 @@ public class ClientHandler implements Runnable {
                 System.out.println("Peer Server received: " + message);
 
                 switch (message) {
+                    // Kademlia related methods
                     case "FIND_NODE":
                         findNodeHandler(in, out);
                         break;
@@ -66,6 +67,13 @@ public class ClientHandler implements Runnable {
                     case "STORE":
                         storeHandler(in, out);
                         break;
+
+                        // Kademlia/App related methods
+                    case "REMOVE_PEER":
+                        removePeerHandler(in,out);
+                        break;
+
+                    // Blockchain/App related methods
                     case "MINE":
                         mineHandler(out);
                         break;
@@ -75,6 +83,8 @@ public class ClientHandler implements Runnable {
                     case "ADD_TRANSACTION":
                         addTransactionHandler(in, out);
                         break;
+
+                    // App related methods
                     case "GET_TRANSACTION_POOL":
                         getTransactionPool(out);
                         break;
@@ -117,7 +127,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-
     private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
     }
@@ -149,6 +158,36 @@ public class ClientHandler implements Runnable {
     private void storeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
     }
+
+    private void removePeerHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        // Syncronize on server to avoid race conditions between threads
+        synchronized (server){
+            try{
+                logger.info("Removing Peer/Node...");
+                clientOut.writeObject("OK");
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+
+                if (receivedObject instanceof Node n){
+                    logger.info("Peer/Node we are going to remove " + n);
+                    //clientOut.writeObject("OK");
+                    if (server.removeNeighbour(n))
+                        clientOut.writeObject("OK");
+                    else {
+                        System.out.println("ERRO OCORREU EM removePeerHandler");
+                        clientOut.writeObject("NOT OK");
+                    }
+                }else{
+                    clientOut.writeObject("Error: Expected Node but received something else");
+                    logger.warning("Error: Did not receive a Node (pingHandler)");
+                }
+            }catch (Exception e){
+                logger.severe("Error ocured (removePeerHandler)");
+            }
+        }
+    }
+
 
     /**
      * Handles the mining process and responds to the client with the result.

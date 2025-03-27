@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -61,7 +62,14 @@ public class Peer {
             bootstrapNodes.add(bootstrap);
             //System.out.println(bootstrap);
         }
-        new Thread(new Server(args[0], Integer.parseInt(args[1]), peer.logger, peer, bootstrapNodes)).start();
+        Server server =new Server(args[0], Integer.parseInt(args[1]), peer.logger, peer, bootstrapNodes);
+        new Thread(server).start();
+
+        // Added a shutdown hook to capture when the Peer is turned off
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Peer is shutting down...");
+            server.gracefullShutdown();
+        }));
     }
 }
 
@@ -141,6 +149,45 @@ class Server implements Runnable {
         }
     }
 
+    /**
+     * Remove a node from:
+     * --> list of kneigbours
+     * -->routing table
+     * @param n node we want to remove from list of kneigbours and routing table
+     * @return True if we removed the node from list of kneigbours  and routing table.False otherwise
+     */
+    public boolean removeNeighbour(Node n){
+        boolean a = false;
+
+        Iterator<Node> iterator = knowNeighbours.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().equals(n)) {
+                iterator.remove(); // Remove in a thread safe way
+                a = true;
+            }
+        }
+
+        boolean b = kademliaNode.getRoutingTable().removeNodeFromBucketList(n);
+        if (a && b) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Basicaly when a Peer shutdowns, it sends to all og its
+     * kneighbours a message "REMOVE_PEER" to tell each one
+     * to remove this Node/Peer from their Neighbours List
+     * and routing table
+     */
+    public void gracefullShutdown(){
+        for (Node neighour: knowNeighbours){
+            String response = (String) PeerComunication.sendMessageToPeer(
+                    neighour.getIpAddr(),neighour.getPort(),
+                    "REMOVE_PEER",kademliaNode);
+            logger.info(response);
+        }
+    }
 
     /**
      * Stop all threads by closing  ClientHandler client socket and
