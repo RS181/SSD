@@ -43,9 +43,9 @@ public class Bucket implements Serializable {
     }
 
     /**
-     *
-     * @param n
-     * @return
+     * Add's a node to the bucket list
+     * @param n node that we are trying to add
+     * @return True if node was added and False otherwise
      */
     public boolean addNode(Node n){
         if (nodeList.size() > k) {
@@ -56,9 +56,22 @@ public class Bucket implements Serializable {
             nodeList.addLast(n);
             return true;
         }
-
     }
 
+    /**
+     * Removes a node from the bucket list
+     * @param n node that we are trying to remove
+     * @return True if node was removed and False otherwise
+     */
+    public boolean removeNode(Node n){
+        for (Node node : nodeList){
+            if(node.equals(n)) {
+                nodeList.remove(node);
+                return true;
+            }
+        }
+        return false;
+    }
 
 
     @Override

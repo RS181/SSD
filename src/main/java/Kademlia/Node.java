@@ -73,6 +73,19 @@ public class Node implements Serializable {
         routingTable.addNodeToBucketList(n);
     }
 
+
+    @Override
+    public boolean equals(Object object) {
+        Node anotherNode= (Node) object; //downcasting from object to Person
+        if (
+                this.nodeId.equals(anotherNode.nodeId)
+                && this.ipAddr.equals(anotherNode.ipAddr)
+                && this.port == anotherNode.getPort()
+        ) {
+            return true;
+        }
+        return false;
+    }
     @Override
     public String toString() {
         return "[" +

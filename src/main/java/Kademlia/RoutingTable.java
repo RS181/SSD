@@ -90,6 +90,13 @@ public class RoutingTable implements Serializable {
         return closestBucket.addNode(n);
     }
 
+    public boolean removeNodeFromBucketList(Node n){
+        Bucket closestBucket = getClosestBucket(n.getNodeId());
+        if (closestBucket == null) return false;
+
+        return closestBucket.removeNode(n);
+    }
+
 
     /**
      * Calculates XOR between this node Id and the node id of target
