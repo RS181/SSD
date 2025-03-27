@@ -98,16 +98,16 @@ public class Client {
                     System.out.println("TODO: Search for available auctions");
                     break;
                 case "9": // Get Server info
-                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_SERVER_INFO",null));
+                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_SERVER_INFO",null));
                     break;
                 case "10": // Get Server Transaction pool
-                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_TRANSACTION_POOL",null));
+                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_TRANSACTION_POOL",null));
                     break;
                 case "11": // Get Server blockchain
-                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_BLOCKCHAIN",null));
+                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_BLOCKCHAIN",null));
                     break;
                 case "12": // Get Server Kademlia Node
-                    System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"GET_KADEMLIA_NODE",null));
+                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_KADEMLIA_NODE",null));
                     break;
                 case "exit": // Exit
                     end = true;
@@ -122,7 +122,7 @@ public class Client {
 
     private static void clientMineHandler(String peerServerHost, int peerServerPort) {
         System.out.println("Waiting for Response from Peer Server...");
-        System.out.println("Peer Server Response: " + sendMessageToPeer(peerServerHost, peerServerPort,"MINE",null));
+        System.out.println("Peer Server Response: " + PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"MINE",null));
     }
     private static void createAuctionHandler(Scanner scanner, String username, String peerServerHost, int peerServerPort) {
         System.out.println("Insert a name for the auction");
@@ -131,7 +131,7 @@ public class Client {
                 new Transaction(username, Transaction.TransactionType.CREATE_AUCTION,
                         auctionId,0,new Date().getTime());
         System.out.println("Waiting for Response from Peer Server...");
-        System.out.println(sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",createAuction));
+        System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",createAuction));
 
     }
 
@@ -143,65 +143,60 @@ public class Client {
      * @param serverHost
      * @param serverPort
      * @param messageType can be: FIND_NODE , FIND_VALUE , PING , STORE , TODO talvez mais
-     * @param object  if it is null we are not sending anything to Peer's Server.Otherwise we
+     * @param object  if it is null we are not sending anything to Peer's Server.Otherwise, we
      *                send the object.
      * @return an object that contains response from Peer Server (either 'OK' or 'Error' message)
      */
-    public static Object sendMessageToPeer (String serverHost,int serverPort,Object messageType, Object object){
-        Object peerResponse = null;
-        try {
-            Socket socket = new Socket(InetAddress.getByName(serverHost), serverPort);
-
-            /*
-             * Prepare socket I/O channels
-             * IMPORTANTE: Criar ObjectOutputStream ANTES de ObjectInputStream
-             */
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-
-            /*
-             * Send mesage type object to server
-             */
-            out.writeObject(messageType);
-            System.out.printf("SENT %s to server\n",messageType);
-            out.flush();
-
-            /*
-             * Server response
-             */
-            peerResponse =  in.readObject();
-
-            /*
-             * Send object to server (in case object is not null)
-             */
-            if(object == null){
-                System.out.println("not sending object to server");
-            }
-            else {
-                System.out.println(peerResponse);
-                System.out.println("sending object to server");
-                out.writeObject(object);
-                out.flush();
-
-                /*
-                 * Server response (Ok or error message)
-                 */
-                peerResponse = in.readObject();
-            }
-
-            socket.close();
-
-
-
-        }catch (Exception e){
-            System.out.println("Server @ " +serverPort + " failed to connect." );
-        }
-        return peerResponse;
-    }
-
-
-
-
-
+//    public static Object sendMessageToPeer (String serverHost,int serverPort,Object messageType, Object object){
+//        Object peerResponse = null;
+//        try {
+//            Socket socket = new Socket(InetAddress.getByName(serverHost), serverPort);
+//
+//            /*
+//             * Prepare socket I/O channels
+//             * IMPORTANTE: Criar ObjectOutputStream ANTES de ObjectInputStream
+//             */
+//            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+//            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+//
+//            /*
+//             * Send mesage type object to server
+//             */
+//            out.writeObject(messageType);
+//            System.out.printf("SENT %s to server\n",messageType);
+//            out.flush();
+//
+//            /*
+//             * Server response
+//             */
+//            peerResponse =  in.readObject();
+//
+//            /*
+//             * Send object to server (in case object is not null)
+//             */
+//            if(object == null){
+//                System.out.println("not sending object to server");
+//            }
+//            else {
+//                System.out.println(peerResponse);
+//                System.out.println("sending object to server");
+//                out.writeObject(object);
+//                out.flush();
+//
+//                /*
+//                 * Server response (Ok or error message)
+//                 */
+//                peerResponse = in.readObject();
+//            }
+//
+//            socket.close();
+//
+//
+//
+//        }catch (Exception e){
+//            System.out.println("Server @ " +serverPort + " failed to connect." );
+//        }
+//        return peerResponse;
+//    }
 
 }

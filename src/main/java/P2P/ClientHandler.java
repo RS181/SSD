@@ -183,9 +183,9 @@ public class ClientHandler implements Runnable {
                         for (Node n : server.knowNeighbours) {
                             logger.info("Sending STOP to @" + n.getIpAddr() + " " + n.getPort());
                             // send STOP message to stop all Threads of Neighbours
-                            Client.sendMessageToPeer(n.getIpAddr(), n.getPort(), "STOP", null);
+                            PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "STOP", null);
                             // send ADD_MINED_BLOCK message to add block to Neighbours blockchain
-                            Client.sendMessageToPeer(n.getIpAddr(),n.getPort(),"ADD_MINED_BLOCK",b);
+                            PeerComunication.sendMessageToPeer(n.getIpAddr(),n.getPort(),"ADD_MINED_BLOCK",b);
                         }
                     } else
                         System.out.println("Client Socket is closed");
