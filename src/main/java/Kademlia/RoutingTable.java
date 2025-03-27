@@ -79,8 +79,8 @@ public class RoutingTable implements Serializable {
 
     /**
      * Add's a node to the 'closest' bucket
-     * @param n
-     * @return
+     * @param n node we are trying to add
+     * @return True if node was added and False otherwise
      */
     public  boolean addNodeToBucketList(Node n){
         Bucket closestBucket = getClosestBucket(n.getNodeId());
@@ -90,6 +90,11 @@ public class RoutingTable implements Serializable {
         return closestBucket.addNode(n);
     }
 
+    /**
+     * Removes a node from its respectiv bucket
+     * @param n node we are trying to remove
+     * @return True if node was removed and False otherwise
+     */
     public boolean removeNodeFromBucketList(Node n){
         Bucket closestBucket = getClosestBucket(n.getNodeId());
         if (closestBucket == null) return false;
