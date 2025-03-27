@@ -127,7 +127,23 @@ public class ClientHandler implements Runnable {
     }
 
     private void pingHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        // TODO
+        try{
+            logger.info("Received Ping ...");
+            clientOut.writeObject("OK");
+            clientOut.flush();
+
+            Object receivedObject = clientIn.readObject();
+
+            if (receivedObject instanceof  Node n){
+                logger.info("Received Ping from " + n);
+                clientOut.writeObject("OK");
+            }else {
+                clientOut.writeObject("Error: Expected Node but received something else");
+                logger.warning("Error: Did not receive a Node (pingHandler)");
+            }
+        }catch (Exception e){
+            logger.severe("Error ocured (pingHandler)");
+        }
     }
 
     private void storeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {

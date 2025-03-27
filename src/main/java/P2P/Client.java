@@ -1,6 +1,8 @@
 package P2P;
 
 import BlockChain.Transaction;
+import Kademlia.Node;
+import Kademlia.Operations;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -80,7 +82,7 @@ public class Client {
                     System.out.println("TODO: FIND_VALUE");
                     break;
                 case "3": // PING
-                    System.out.println("TODO: PING");
+                    pingHandler(scanner);
                     break;
                 case "4": // STORE
                     System.out.println("TODO: STORE");
@@ -117,6 +119,23 @@ public class Client {
                     break;
             }
         }
+    }
+
+    private void pingHandler(Scanner scanner) {
+        System.out.println("Insert the Ip address of Kademlia Node you want to PING");
+        String ipAddr = scanner.nextLine();
+        System.out.println("Insert the Port of Kademlia Node you want to PING");
+        int port = scanner.nextInt();
+
+        System.out.println(peerServerHost + " " + peerServerPort + " --[PING]--> " + ipAddr + " " + port);
+        Node sender = new Node(peerServerHost,peerServerPort,false);
+        Node target = new Node(ipAddr,port,false);
+
+        Boolean pingWasSucessful = Operations.ping(sender,target);
+        if(pingWasSucessful)
+            System.out.println(ipAddr + " " + port + " is ON-LINE");
+        else
+            System.out.println(ipAddr + " " + port + " is OFF-LINE");
     }
 
 
