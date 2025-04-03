@@ -1,9 +1,7 @@
 package Kademlia;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class that Represents a Routing table of a kademlia node
@@ -37,7 +35,7 @@ public class RoutingTable implements Serializable {
             char[] c = new char[i];
             Arrays.fill(c, '0');
             String prefix = new String(c);
-            Bucket b = new Bucket(nodeId,prefix,Constants.MAX_NUMBER_NODES);
+            Bucket b = new Bucket(nodeId,prefix,Constants.MAX_NUMBER_NODES_BUCKET);
             // Add owner node of this routing table to respetiv bucket (prefix all 0's)
             if(i == numberBuckets)
                 b.addNode(new Node(this.ipAddr,port,false));
@@ -78,6 +76,48 @@ public class RoutingTable implements Serializable {
     }
 
     /**
+     * Returns a List of Closest Nodes of given target Node id
+
+     * @param alpha the size of the list we are going to return
+     * @param targeNodeId the node we are trying to find the closest Nodes
+     * @return List of Closest Nodes of given target Node id
+     */
+    public List<Node> getClosestNodes(int alpha,String targeNodeId){
+        List<Node> aux = new ArrayList<>();
+        List<Node> ans = new ArrayList<>();
+
+        // First we get a list of all Nodes in the routing table
+        for (int i = 0 ; i < bucketList.size() ; i++){
+            Bucket bucket = bucketList.get(i);
+            List<Node> nodeList = bucket.getNodeList();
+            for (int j = 0 ; j < nodeList.size() ; j++){
+                aux.add(nodeList.get(j));
+            }
+        }
+
+        // Secondly we create a Map i n wich the key is the Node and
+        // the value is the  Xor distance in decimal of current
+        // Node and target Node
+        Map<Node,Integer> m = new HashMap<>();
+        for (int i = 0 ; i < aux.size() ; i++){
+            Node current = aux.get(i);
+            String xorDistance = calculateDistance(current.getNodeId(),targeNodeId);
+            //System.out.println(current + " XOR " + targeNodeId + " = " + xorDistance);
+            m.put(current, binaryToDecimal(xorDistance));
+        }
+
+        // Lastly we return the alpha Nodes in the sorted Map with lower correspondent value
+        Map<Node,Integer> sortedMap = sortByValueAscending(m);
+        //System.out.println(sortedMap);
+        for (Node n : sortedMap.keySet()){
+            if (ans.size() == alpha)
+                break;
+            ans.add(n);
+        }
+        return ans;
+    }
+
+    /**
      * Add's a node to the 'closest' bucket
      * @param n node we are trying to add
      * @return True if node was added and False otherwise
@@ -87,6 +127,11 @@ public class RoutingTable implements Serializable {
 
         if (closestBucket == null)  return false;
 
+        // To avoid duplicates Nodes in the same Bucket
+        for(Node node : closestBucket.getNodeList()) {
+            if (node.equals(n))
+                return false;
+        }
         return closestBucket.addNode(n);
     }
 
@@ -105,6 +150,7 @@ public class RoutingTable implements Serializable {
 
     /**
      * Calculates XOR between this node Id and the node id of target
+     * @param targetNodeId node id of target
      * @return the String that corresponds to the XOR of this node Id and target node Id
      */
     private String calculateDistance(String targetNodeId){
@@ -116,6 +162,51 @@ public class RoutingTable implements Serializable {
                 result.append("1");
         }
         return result.toString();
+    }
+
+    /**
+     * Calculate XOR between two given nodes
+     * @param nodeId1
+     * @param nodeId2
+     * @return the String that corresponds to the XOR of nodeId1 and nodeId2
+     */
+    private String calculateDistance(String nodeId1, String nodeId2){
+        if (nodeId1.length() != nodeId2.length())
+            return  null;
+        StringBuilder result = new StringBuilder();
+        for (int i = 0 ; i < nodeId1.length() ; i++){
+            if (nodeId1.charAt(i) == nodeId2.charAt(i))
+                result.append("0");
+            else
+                result.append("1");
+        }
+        return result.toString();
+    }
+
+    public  int binaryToDecimal(String binaryString) {
+        return Integer.parseInt(binaryString, 2);
+    }
+
+
+    /**
+     * Method that receives a map and returns a map that is sorted by Ascending order
+     * of value
+     * @param map Map that we are going to sort by value
+     * @return the sorted map (by Ascending order of value)
+     */
+    private Map<Node, Integer> sortByValueAscending(Map<Node, Integer> map) {
+        // Convert a map to a list of entries
+        List<Map.Entry<Node, Integer>> list = new ArrayList<>(map.entrySet());
+
+        // order the list based on the values (Ascending)
+        list.sort(Map.Entry.comparingByValue());
+
+        // Creates a LinkedHashMap to mantain the orderded list
+        Map<Node, Integer> sortedMap = new LinkedHashMap<>();
+        for (Map.Entry<Node, Integer> entry : list) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+        return sortedMap;
     }
 
     @Override
