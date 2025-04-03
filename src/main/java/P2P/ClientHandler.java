@@ -4,6 +4,7 @@ import BlockChain.Block;
 import BlockChain.Blockchain;
 import BlockChain.Miner;
 import BlockChain.Transaction;
+import Kademlia.Constants;
 import Kademlia.Node;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -72,6 +74,9 @@ public class ClientHandler implements Runnable {
                     case "REMOVE_PEER":
                         removePeerHandler(in,out);
                         break;
+                    case "ADD_PEER":
+                        addPeerHandler(in,out);
+                        break;
 
                     // Blockchain/App related methods
                     case "MINE":
@@ -93,6 +98,9 @@ public class ClientHandler implements Runnable {
                         break;
                     case "GET_KADEMLIA_NODE":
                         getKademliaNode(out);
+                        break;
+                    case "GET_ROUTING_TABLE":
+                        getRoutingTable(out);
                         break;
                     case "GET_SERVER_INFO":
                         getServerInfo(out);
@@ -128,7 +136,32 @@ public class ClientHandler implements Runnable {
     }
 
     private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        // TODO
+        logger.info("Recebi mensagem Find Node");
+        try {
+            // Syncronize on kademlia Node to avoid race conditions between threads
+            synchronized (kademliaNode) {
+                clientOut.writeObject("OK from @ " + server.host + " " + server.port);
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+
+                if (receivedObject instanceof String targetNodeId){
+                    logger.info("Receive FIND_NODE(" + targetNodeId + ")");
+                    List<Node> kClosestNodes =
+                            kademliaNode.getRoutingTable().getClosestNodes(Constants.MAX_RETURN_FIND_NODES,targetNodeId);
+                    clientOut.writeObject(kClosestNodes);
+                }else {
+                    clientOut.writeObject("Error: Expected Node Id but received something else");
+                    logger.warning("Error: Did not receive a Node Id (findNodeHandler)");
+                }
+
+            }
+
+
+        } catch (Exception e) {
+            logger.severe("Error ocured (findNodeHandler)");
+        }
+
     }
 
     private void findValueHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
@@ -180,7 +213,7 @@ public class ClientHandler implements Runnable {
                     }
                 }else{
                     clientOut.writeObject("Error: Expected Node but received something else");
-                    logger.warning("Error: Did not receive a Node (pingHandler)");
+                    logger.warning("Error: Did not receive a Node (removePeerHandler)");
                 }
             }catch (Exception e){
                 logger.severe("Error ocured (removePeerHandler)");
@@ -188,6 +221,38 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void addPeerHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        // Syncronize on server to avoid race conditions between threads
+        synchronized (server){
+            try{
+                logger.info("Adding Peer/Node...");
+                clientOut.writeObject("OK");
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+
+                if (receivedObject instanceof Node n){
+                    logger.info("Peer/Node we are going to try to Add "+ n);
+                    if (server.addNeighbour(n)) {
+                        System.out.println("Added " + n + "(addPeerHandler)");
+                        clientOut.writeObject("Ok ( Added " + n + ") to " + server.host + " " + server.port);
+                    } else {
+                        System.out.println("Could not add " + n + " (addPeerHandler)");
+                        clientOut.writeObject("NOT OK ( couldn't add " + n + " ) to " + server.host + " " + server.port);
+                    }
+                }else{
+                    clientOut.writeObject("Error: Expected Node but received something else");
+                    logger.warning("Error: Did not receive a Node (addPeerHandler)");
+                }
+
+
+            }catch (Exception e){
+                logger.severe("Error ocured (addPeerHandler)");
+
+            }
+        }
+
+    }
 
     /**
      * Handles the mining process and responds to the client with the result.
@@ -397,5 +462,18 @@ public class ClientHandler implements Runnable {
             logger.severe("Error ocured (getServerInfo)");
         }
     }
+
+    private void getRoutingTable(ObjectOutputStream clientOut) {
+        // Syncronize on kademliaNode to avoid race conditions between threads
+        synchronized (kademliaNode){
+            try {
+                clientOut.writeObject(kademliaNode.getRoutingTable());
+                clientOut.flush();
+            }catch (Exception e){
+                logger.severe("Error ocured (getRoutingTable)");
+            }
+        }
+    }
+
 
 }

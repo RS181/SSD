@@ -3,6 +3,7 @@ package P2P;
 import BlockChain.Transaction;
 import Kademlia.Node;
 import Kademlia.Operations;
+import Kademlia.RoutingTable;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -76,7 +77,7 @@ public class Client {
                     System.out.println("TODO: Print KBucket");
                     break;
                 case "1": // FIND_NODE
-                    System.out.println("TODO: FIND_NODE");
+                    findNodeHandler(scanner);
                     break;
                 case "2": // FIND_VALUE
                     System.out.println("TODO: FIND_VALUE");
@@ -121,6 +122,27 @@ public class Client {
         }
     }
 
+    private void findNodeHandler(Scanner scanner) {
+        System.out.println("Insert the Ip address for FIND_NODE");
+        String ipAddr = scanner.nextLine();
+        System.out.println("Insert the Port for FIND_NODE");
+        int port = scanner.nextInt();
+        System.out.println(peerServerHost + " " + peerServerPort + " --[FIND_NODE]--> " + ipAddr + " " + port);
+        Node sender = new Node(peerServerHost,peerServerPort,false);
+        Node target = new Node(ipAddr,port,false);
+
+
+        if (PeerComunication.sendMessageToPeer(sender.getIpAddr(),sender.getPort(),"GET_ROUTING_TABLE",
+                null) instanceof RoutingTable senderRoutingTable){
+            System.out.println("OK (cliente)");
+            Operations.findNode(sender,senderRoutingTable,target.getNodeId());
+        }else {
+            System.out.println("ERRO (cliente)");
+        }
+
+        //Operations.findNode(sender,target.getNodeId());
+    }
+
     private void pingHandler(Scanner scanner) {
         System.out.println("Insert the Ip address of Kademlia Node you want to PING");
         String ipAddr = scanner.nextLine();
@@ -153,69 +175,5 @@ public class Client {
         System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",createAuction));
 
     }
-
-
-
-
-    /**
-     * Sends a string message to a Peer's Server
-     * @param serverHost
-     * @param serverPort
-     * @param messageType can be: FIND_NODE , FIND_VALUE , PING , STORE , TODO talvez mais
-     * @param object  if it is null we are not sending anything to Peer's Server.Otherwise, we
-     *                send the object.
-     * @return an object that contains response from Peer Server (either 'OK' or 'Error' message)
-     */
-//    public static Object sendMessageToPeer (String serverHost,int serverPort,Object messageType, Object object){
-//        Object peerResponse = null;
-//        try {
-//            Socket socket = new Socket(InetAddress.getByName(serverHost), serverPort);
-//
-//            /*
-//             * Prepare socket I/O channels
-//             * IMPORTANTE: Criar ObjectOutputStream ANTES de ObjectInputStream
-//             */
-//            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-//            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-//
-//            /*
-//             * Send mesage type object to server
-//             */
-//            out.writeObject(messageType);
-//            System.out.printf("SENT %s to server\n",messageType);
-//            out.flush();
-//
-//            /*
-//             * Server response
-//             */
-//            peerResponse =  in.readObject();
-//
-//            /*
-//             * Send object to server (in case object is not null)
-//             */
-//            if(object == null){
-//                System.out.println("not sending object to server");
-//            }
-//            else {
-//                System.out.println(peerResponse);
-//                System.out.println("sending object to server");
-//                out.writeObject(object);
-//                out.flush();
-//
-//                /*
-//                 * Server response (Ok or error message)
-//                 */
-//                peerResponse = in.readObject();
-//            }
-//
-//            socket.close();
-//
-//
-//
-//        }catch (Exception e){
-//            System.out.println("Server @ " +serverPort + " failed to connect." );
-//        }
-//        return peerResponse;
-//    }
 
 }
