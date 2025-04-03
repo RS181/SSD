@@ -48,10 +48,10 @@ public class Peer {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 4) {
-            System.out.println("Error: Wrong number of arguments. Usage: java Peer <host> <port> " + "<BootStrap_host_1> <BootStrap_Port_1> ... <BootStrap_host_n> <BootStrap_Port_n>");
-            return;
-        }
+        //if (args.length < 4) {
+        //    System.out.println("Error: Wrong number of arguments. Usage: java Peer <host> <port> " + "<BootStrap_host_1> <BootStrap_Port_1> ... <BootStrap_host_n> <BootStrap_Port_n>");
+        //    return;
+        //}
         Peer peer = new Peer(args[0], Integer.parseInt(args[1]));
 
         System.out.printf("new peer @ host=%s port=%s\n", args[0], args[1]);
