@@ -150,9 +150,35 @@ class Server implements Runnable {
     }
 
     /**
+     * Add's a node (if it's not already there) to:
+     * --> list of kneigbours
+     * --> routing table
+     * @param n node we want to add to list of kneigbours and routing table
+     * @return True if we added the node to list of kneigbours  and routing table.False otherwise
+     */
+    public boolean addNeighbour(Node n){
+        boolean a = true;
+
+        Iterator<Node> iterator = knowNeighbours.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().equals(n)) {
+                a = false;
+                break;
+            }
+        }
+
+        boolean b = kademliaNode.getRoutingTable().addNodeToBucketList(n);
+
+        if (a && b)
+            knowNeighbours.add(n);
+
+        return  a && b;
+    }
+
+    /**
      * Remove a node from:
      * --> list of kneigbours
-     * -->routing table
+     * --> routing table
      * @param n node we want to remove from list of kneigbours and routing table
      * @return True if we removed the node from list of kneigbours  and routing table.False otherwise
      */
@@ -168,10 +194,11 @@ class Server implements Runnable {
         }
 
         boolean b = kademliaNode.getRoutingTable().removeNodeFromBucketList(n);
-        if (a && b) {
-            return true;
-        }
-        return false;
+        //if (a && b) {
+        //    return true;
+        // }
+        //return false;
+        return a && b;
     }
 
     /**
