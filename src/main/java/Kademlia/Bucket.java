@@ -73,6 +73,9 @@ public class Bucket implements Serializable {
         return false;
     }
 
+    public  int size(){
+        return nodeList.size();
+    }
 
     @Override
     public String toString() {
