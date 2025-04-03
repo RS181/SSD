@@ -135,8 +135,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     *
+     * @param clientIn
+     * @param clientOut
+     */
     private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        logger.info("Recebi mensagem Find Node");
+        logger.info("Received Find Node message");
         try {
             // Syncronize on kademlia Node to avoid race conditions between threads
             synchronized (kademliaNode) {
@@ -154,20 +159,21 @@ public class ClientHandler implements Runnable {
                     clientOut.writeObject("Error: Expected Node Id but received something else");
                     logger.warning("Error: Did not receive a Node Id (findNodeHandler)");
                 }
-
             }
-
-
         } catch (Exception e) {
             logger.severe("Error ocured (findNodeHandler)");
         }
-
     }
 
     private void findValueHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // TODO
     }
 
+    /**
+     *
+     * @param clientIn
+     * @param clientOut
+     */
     private void pingHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         try{
             logger.info("Received Ping ...");
@@ -192,6 +198,11 @@ public class ClientHandler implements Runnable {
         // TODO
     }
 
+    /**
+     *
+     * @param clientIn
+     * @param clientOut
+     */
     private void removePeerHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on server to avoid race conditions between threads
         synchronized (server){
@@ -221,6 +232,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     *
+     * @param clientIn
+     * @param clientOut
+     */
     private void addPeerHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on server to avoid race conditions between threads
         synchronized (server){
@@ -244,14 +260,10 @@ public class ClientHandler implements Runnable {
                     clientOut.writeObject("Error: Expected Node but received something else");
                     logger.warning("Error: Did not receive a Node (addPeerHandler)");
                 }
-
-
             }catch (Exception e){
                 logger.severe("Error ocured (addPeerHandler)");
-
             }
         }
-
     }
 
     /**
@@ -319,6 +331,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     *
+     * @param clientIn
+     * @param clientOut
+     */
     private void addMinedBlockHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on blockchain to avoid race conditions between threads
         synchronized (blockchain){
@@ -341,7 +358,6 @@ public class ClientHandler implements Runnable {
                     logger.severe("Error ocured (addMinedBlockHandler)");
                 }
         }
-
     }
 
     /**
@@ -447,7 +463,6 @@ public class ClientHandler implements Runnable {
 
     /**
      *  Sends the Peer Server info to the client.
-     *
      * @param clientOut the output stream of the client
      */
     private void getServerInfo(ObjectOutputStream clientOut) {
@@ -463,6 +478,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Sends the Routing table of Peer
+     * @param clientOut the output stream of the client
+     */
     private void getRoutingTable(ObjectOutputStream clientOut) {
         // Syncronize on kademliaNode to avoid race conditions between threads
         synchronized (kademliaNode){
@@ -474,6 +493,4 @@ public class ClientHandler implements Runnable {
             }
         }
     }
-
-
 }
