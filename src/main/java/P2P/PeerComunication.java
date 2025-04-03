@@ -9,10 +9,10 @@ import java.net.Socket;
  */
 public class PeerComunication {
     /**
-     * Sends a string message to a Peer's Server
-     * @param serverHost
-     * @param serverPort
-     * @param messageType can be: FIND_NODE , FIND_VALUE , PING , STORE , TODO talvez mais
+     * Sends a string with a certain message type, and possiblily an object, to a Peer's Server
+     * @param serverHost Hostname of Peer server we are going to send message
+     * @param serverPort Port of Peer server we are going to send message
+     * @param messageType can have multiple values (TODO: colocar os valores que pode ter)
      * @param object  if it is null we are not sending anything to Peer's Server.Otherwise, we
      *                send the object.
      * @return an object that contains response from Peer Server (either 'OK' or 'Error' message)
