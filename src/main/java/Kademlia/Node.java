@@ -76,7 +76,7 @@ public class Node implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        Node anotherNode= (Node) object; //downcasting from object to Person
+        Node anotherNode= (Node) object;
         if (
                 this.nodeId.equals(anotherNode.nodeId)
                 && this.ipAddr.equals(anotherNode.ipAddr)
