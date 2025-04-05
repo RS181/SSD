@@ -12,11 +12,13 @@ public class Constants {
 
     /**
      * Defines the number of Nodes returned by FIND operation
-     * NOTE: In this case we can adjust this constant so that
-     * when we receive the nodes of a FIND operation, we try
-     * to receive all nodes that are present in the network
-     * , so that all nodes know eachother (a.k.a all nodes
-     * are bootstrap nodes)
+     * <p>
+     * IMPORTANT!!!
+     * NOTE: In this case we have to adjust this constant so that
+     * when we receive the nodes of a FIND operation, we receive
+     * all nodes that are present in the network, so that all
+     * nodes know eachother (a.k.a all nodes are bootstrap nodes).
+     * </p>
      */
     public static final int MAX_RETURN_FIND_NODES = 4;
 
