@@ -21,6 +21,17 @@ public class Operations {
         PING, FIND_NODE, FIND_VALUE, STORE
     }
 
+    /**
+     * Sends a {@code PING} request from the {@code senderNode} to the {@code targetNode} to check if it is alive.
+     *
+     * <p>This method is used in Kademlia to verify the liveness of a node and ensure it is still reachable.
+     * The target node should respond with any non-null response if it is active. If no response is received,
+     * the node is considered unreachable and may eventually be removed from the routing table.
+     *
+     * @param senderNode the node initiating the PING
+     * @param targetNode the node being pinged
+     * @return {@code true} if a response is received (node is alive), {@code false} otherwise
+     */
     public static boolean ping(Node senderNode,Node targetNode){
         String targetHost = targetNode.getIpAddr();
         int targerPort = targetNode.getPort();
@@ -31,8 +42,23 @@ public class Operations {
     }
 
     /**
-     * @param senderNode
-     * @param targetNodeId
+     * Performs the Kademlia {@code FIND_NODE} operation starting from a given {@code senderNode}
+     * and searching for nodes close to the {@code targetNodeId}.
+     *
+     * <p>The algorithm iteratively queries the routing tables of the closest known nodes to find
+     * the {@code k} nodes whose IDs are closest to the target. This process continues until
+     * no new closer nodes are discovered in an iteration.
+     *
+     * <p>Steps involved:
+     * <ol>
+     *   <li>Query the sender's routing table for the closest nodes to {@code targetNodeId}.
+     *   <li>Send {@code FIND_NODE} messages to those nodes and collect their responses.
+     *   <li>Repeat the process with any new nodes discovered, updating the sender's routing table.
+     *   <li>Terminate when no new nodes are found in an iteration.
+     * </ol>
+     *
+     * @param senderNode the node initiating the FIND_NODE lookup
+     * @param targetNodeId the ID of the node we are trying to locate
      */
     public static void findNode(Node senderNode, String targetNodeId){
         // Contains all nodes received in FIND_NODE response
@@ -81,35 +107,39 @@ public class Operations {
         System.out.println("================================");
     }
 
-    // TODO: Join network ainda não esta a funcionar
+    /**
+     * Allows a node {@code joiningNode} to join a Kademlia network using a known {@code bootstrap} node.
+     *
+     * <p>The process involves three main steps:
+     * <ol>
+     *   <li>Query the bootstrap node to retrieve the {@code k} closest nodes to {@code joiningNode},
+     *       and update {@code joiningNode}'s routing table with them.
+     *   <li>Add {@code joiningNode} to the bootstrap node's routing table.
+     *   <li>Broadcast the presence of {@code joiningNode} to all the nodes returned by the bootstrap,
+     *       so they can also update their routing tables to include the new node.
+     * </ol>
+     *
+     * <p><strong>Note:</strong> The value of {@code k} must be large enough to ensure that all peers known
+     * by the bootstrap node are included. This guarantees that the new node is properly advertised.
+     *
+     * @param joiningNode the node that wants to join the network
+     * @param bootstrap the bootstrap node already part of the network
+     */
     public static void joinNetwork(Node joiningNode, Node bootstrap){
         System.out.println("=====JOIN NETWORK Iteration [0]=====");
-        // Firstly we get the K closest Nodes to joining Node and update
-        // the joining Node's routing table and list of neighbours
-        // Note: We have to guarante tha k is large enough, so that
-        // we receive all nodes the bootstrap nodes knows, so that we
-        // can send ADD_PEER(joiningNode) to all of them (i.e. we
-        // broadcast the joining node to all peer's the bootstrap nodes
-        // knows)
         List<Node> kClosestNodes = (List<Node>) PeerComunication.sendMessageToPeer(
                         bootstrap.getIpAddr(), bootstrap.getPort(), "FIND_NODE", joiningNode.getNodeId());
         updatePeer(joiningNode,kClosestNodes);
 
-        // Seconly we add the joining Node to bootstrap's routing table and list of neighbours
         PeerComunication.sendMessageToPeer(
                 bootstrap.getIpAddr(),bootstrap.getPort(),"ADD_PEER",joiningNode);
         System.out.println("Closest Nodes to [" +joiningNode +"] =" + kClosestNodes);
         System.out.println("====================================");
 
-        //Finaly broadcast ADD_PEER, to add joining Node to all
-        // the nodes the bootstrap node Knows (in principle all
-        // the nodes that are part of the network)
         System.out.println("=====JOIN NETWORK Iteration [1]=====");
-
         for( Node n : kClosestNodes)
             updatePeer(n,new ArrayList<>(Arrays.asList(joiningNode)));
         System.out.println("====================================");
-
     }
 
     /**
