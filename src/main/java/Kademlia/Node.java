@@ -1,8 +1,11 @@
 package Kademlia;
 
+import BlockChain.Block;
 import Cryptography.CryptoUtils;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class that represents a kademlia Node in a  p2p network
@@ -12,6 +15,8 @@ public class Node implements Serializable {
     private String ipAddr;
     private int port;
     private RoutingTable routingTable;
+
+    private Map<String, Block> localStorage;
 
     /**
      * Constructor for a Kademlia Node
@@ -26,6 +31,7 @@ public class Node implements Serializable {
         this.nodeId = generateNodeId(ipAddr,port);
         if (createRoutingTable)
             this.routingTable = new RoutingTable(nodeId,ipAddr,port);
+        localStorage = new HashMap<>();
     }
 
     /* Getter's */
@@ -45,6 +51,10 @@ public class Node implements Serializable {
         return routingTable;
     }
 
+    public Map<String, Block> getLocalStorage() {
+        return localStorage;
+    }
+
     /**
      * Generates a Node ID based on the IP address and port.
      * The Node ID is defined as the first 8 bits of the SHA-1 hash of the IP address and port,
@@ -52,7 +62,7 @@ public class Node implements Serializable {
      *
      * The first byte of the hash is extracted and converted into an 8-bit binary string.
      *
-     * TODO: Confirmar que uma string binario de tamanho 8 é suficiente para identificar o nó
+     * TODO: possivelmente vamos ter que ajustar para mais bits
      *
      * @param ipAddr The IP address of the node.
      * @param port   The port number of the node.
@@ -73,6 +83,23 @@ public class Node implements Serializable {
         routingTable.addNodeToBucketList(n);
     }
 
+    /**
+     * Stores a <key,value> Pair in node's local storage
+     * @param key correspnds to a hash, that will serve as key
+     * @param value cooresponds to a block, that will serve as value
+     */
+    public void storeKeyValuePair(String key,Block value){
+        localStorage.put(key,value);
+    }
+
+    /**
+     * Tries to get the block that corresponds to a certain key
+     * @param key
+     * @return a Block if there is a matching in nodes local storage, null otherwise
+     */
+    public Block getValue(String key){
+        return localStorage.get(key);
+    }
 
     @Override
     public boolean equals(Object object) {

@@ -4,6 +4,7 @@ import BlockChain.Block;
 import BlockChain.Blockchain;
 import BlockChain.Miner;
 import BlockChain.Transaction;
+import Kademlia.BlockKeyWrapper;
 import Kademlia.Constants;
 import Kademlia.Node;
 
@@ -98,6 +99,9 @@ public class ClientHandler implements Runnable {
                         break;
                     case "GET_KADEMLIA_NODE":
                         getKademliaNode(out);
+                        break;
+                    case "GET_STORAGE":
+                        getStorage(out);
                         break;
                     case "GET_ROUTING_TABLE":
                         getRoutingTable(out);
@@ -195,7 +199,30 @@ public class ClientHandler implements Runnable {
     }
 
     private void storeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        // TODO
+        logger.info("Received Store <Key,Value> message");
+        // Syncronize on kademliaNode to avoid race conditions between threads
+        synchronized (kademliaNode){
+            try {
+                clientOut.writeObject("Ok");
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+
+                if (receivedObject instanceof BlockKeyWrapper blockKeyWrapper){
+                    logger.info("Received Key/Block to Store");
+                    kademliaNode.storeKeyValuePair(
+                            blockKeyWrapper.getKeyId(),blockKeyWrapper.getBlock()
+                    );
+                    clientOut.writeObject("Store complete");
+                }else{
+                    clientOut.writeObject("Error: Expected BlockKeyWrapper but received something else");
+                    logger.warning("Error: Did not receive a BlockKeyWrapper (storeHandler)");
+                }
+
+            } catch (Exception e) {
+                logger.severe("Error ocured (storeHandler)");
+            }
+        }
     }
 
     /**
@@ -457,6 +484,22 @@ public class ClientHandler implements Runnable {
                 clientOut.flush();
             } catch (Exception e) {
                 logger.severe("Error ocured (getKademliaNode)");
+            }
+        }
+    }
+
+    /**
+     * Sends all <Key,Value> pairs (a.k.a. Storage) to the client
+     *
+     * @param clientOut
+     */
+    private void getStorage(ObjectOutputStream clientOut) {
+        synchronized (kademliaNode) {
+            try {
+                clientOut.writeObject(kademliaNode.getLocalStorage());
+                clientOut.flush();
+            } catch (Exception e) {
+                logger.severe("Error ocured (getStorage)");
             }
         }
     }

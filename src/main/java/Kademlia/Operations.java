@@ -1,6 +1,7 @@
 package Kademlia;
 
 import BlockChain.Block;
+import Cryptography.CryptoUtils;
 import P2P.PeerComunication;
 
 import java.util.ArrayList;
@@ -119,11 +120,12 @@ public class Operations {
      *       so they can also update their routing tables to include the new node.
      * </ol>
      *
-     * <p><strong>Note:</strong> The value of {@code k} must be large enough to ensure that all peers known
-     * by the bootstrap node are included. This guarantees that the new node is properly advertised.
      *
      * @param joiningNode the node that wants to join the network
      * @param bootstrap the bootstrap node already part of the network
+     *
+     * @note The value of {@code k} must be large enough to ensure that all peers known
+     *       by the bootstrap node are included. This guarantees that the new node is properly advertised.
      */
     public static void joinNetwork(Node joiningNode, Node bootstrap){
         System.out.println("=====JOIN NETWORK Iteration [0]=====");
@@ -142,6 +144,48 @@ public class Operations {
         System.out.println("====================================");
     }
 
+    public static void findValue(Node senderNode, String key){
+        //TODO
+    }
+
+    /**
+     * Stores a (key, value) pair in the Kademlia network.
+     * <p>
+     * This method is used to distribute and replicate a value (e.g., a block)
+     * across the k nodes that are closest to the key in the XOR metric space.
+     * The key is hashed to generate a key ID, which is used to determine where
+     * the value should be stored in the network.
+     * </p>
+     *
+     * @param senderNode The node initiating the STORE operation.
+     * @param key        The string key to be used for identifying the value (e.g., a block hash or unique identifier).
+     * @param value      The value (a Block) to be stored in the network.
+     *
+     * @note This implementation follows a broadcast-style STORE. We assume that the {@code FIND_NODE}
+     *       performed from the senderNode returns all nodes in the network (i.e., the {@code kClosestNodes}
+     *       actually correspond to all active Kademlia nodes). This guarantees that the value is propagated
+     *       across the entire network.
+     */
+    public static void store (Node senderNode,String key, Block value){
+        String keyId =  generateKeyId(key);
+        System.out.println("Key Id = " + keyId);
+
+        // Get the k closest Nodes  to keyId (from sender Node)
+        List<Node> kClosestNodes = (List<Node>) PeerComunication.sendMessageToPeer(
+                senderNode.getIpAddr(), senderNode.getPort(), "FIND_NODE",keyId);
+
+        // Wraps the Key and Block in a  wrapper class (a.k.a. BlockKeyWrapper)
+        BlockKeyWrapper blockKeyWrapper = new BlockKeyWrapper(keyId,value);
+
+        // Store the <Key,Value> pair in those KClosestNodes
+        for (Node n : kClosestNodes){
+            PeerComunication.sendMessageToPeer(
+                    n.getIpAddr(),n.getPort(),"STORE",blockKeyWrapper
+            );
+        }
+
+    }
+
     /**
      * Updates the routing table and list of known Neighbours of a certain Peer
      * @param senderNode Node that we are going to send a list of Nodes to update
@@ -156,14 +200,23 @@ public class Operations {
                     )
             );
         }
-
     }
 
-    public static void findValue(Node senderNode, String key){
-        //TODO
-    }
-
-    public static void store (Node senderNode, String key, Block value){
-
+    /**
+     * Generates a key ID based on a certain key.
+     * The key ID is defined as the first 8 bits of the SHA-1 hash of the key,
+     * returned as an 8-character binary string (e.g., "00110001").
+     *
+     * TODO: possivelmente vamos ter que ajustar para mais bits
+     * The first byte of the hash is extracted and converted into an 8-bit binary string.
+     *
+     * @param key Strin that corresponds to a key
+     * @return The generated Key ID as an 8-bit binary string.
+     */
+    private static String generateKeyId(String key) {
+        String input = CryptoUtils.getHash1(key);
+        byte[] bytes = input.getBytes();
+        int first8Bits = bytes[0] & 0xFF; // Positive 8-bit value
+        return String.format("%8s", Integer.toBinaryString(first8Bits)).replace(' ', '0'); // 8-bit binary
     }
 }

@@ -1,13 +1,10 @@
 package P2P;
 
+import BlockChain.Block;
 import BlockChain.Transaction;
 import Kademlia.Node;
 import Kademlia.Operations;
-import Kademlia.RoutingTable;
 
-import java.io.*;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
@@ -34,7 +31,7 @@ public class Client {
                 " 1 - Find Kademlia Node" + '\n' +
                 " 2 - Find Value" + '\n' +
                 " 3 - Ping" + '\n' +
-                " 4 - Store" + '\n' +
+                " 4 - (Test) Store" + '\n' +
                 " 5 - Mine Block" + '\n' +
                 " 6 - Create Auction" + '\n' +
                 " 7 - Place Bid" + '\n' +
@@ -43,6 +40,7 @@ public class Client {
                 "10 - Get Server Transaction pool" + '\n' +
                 "11 - Get Server blockchain" + '\n' +
                 "12 - Get Server Kademlia Node " + '\n' +
+                "13 - Get Server Storage " + '\n' +
                 " exit - Exit" + '\n' +
                 "----------------------------------";
     }
@@ -86,7 +84,7 @@ public class Client {
                     pingHandler(scanner);
                     break;
                 case "4": // STORE
-                    System.out.println("TODO: STORE");
+                    clientStoreHandler(scanner);
                     break;
                 case "5": // Mine a block
                     clientMineHandler(peerServerHost, peerServerPort);
@@ -111,6 +109,9 @@ public class Client {
                     break;
                 case "12": // Get Server Kademlia Node
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_KADEMLIA_NODE",null));
+                    break;
+                case "13": // Get <Key,Value> from kademlia Node
+                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_STORAGE",null));
                     break;
                 case "exit": // Exit
                     end = true;
@@ -155,9 +156,28 @@ public class Client {
         Boolean pingWasSucessful = Operations.ping(sender,target);
         if(pingWasSucessful)
             System.out.println(ipAddr + " " + port + " is ON-LINE");
-        else
+        else {
+            // TODO enviar o REMOVE PEER para todos os nós conhecidos por PEER
             System.out.println(ipAddr + " " + port + " is OFF-LINE");
+        }
     }
+
+    // NOTA: este método é só para realizar testes sobre operação STORE do kademlia
+    private void clientStoreHandler(Scanner scanner) {
+        System.out.println("Insert the key value: ");
+        String key = scanner.nextLine();
+
+        ArrayList<Transaction> startAuction = new ArrayList<>();
+        startAuction.add(new Transaction("user1", Transaction.TransactionType.CREATE_AUCTION, "AUC123", 0, System.currentTimeMillis()));
+        // No need to mine, because we are just using this for test purposes
+        Block value = new Block(startAuction,"");
+        Node sender = new Node(peerServerHost,peerServerPort,false);
+
+        Operations.store(sender,key,value);
+    }
+
+
+
 
 
     private static void clientMineHandler(String peerServerHost, int peerServerPort) {
