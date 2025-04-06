@@ -29,7 +29,7 @@ public class BlockKeyWrapper implements Serializable {
      * @param block the block to include in the wrapper
      * @param keyId the key identifier associated with the block
      */
-    public BlockKeyWrapper(Block block, String keyId) {
+    public BlockKeyWrapper(String keyId,Block block) {
         this.block = block;
         this.keyId = keyId;
     }
