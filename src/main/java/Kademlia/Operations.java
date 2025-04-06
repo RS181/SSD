@@ -4,9 +4,7 @@ import BlockChain.Block;
 import Cryptography.CryptoUtils;
 import P2P.PeerComunication;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -144,8 +142,64 @@ public class Operations {
         System.out.println("====================================");
     }
 
-    public static void findValue(Node senderNode, String key){
-        //TODO
+    public static Block findValue(Node senderNode, String key) {
+        String keyId = generateKeyId(key);
+        Set<Node> queriedNodes = new HashSet<>();
+        Set<Node> discoveredNodes = new HashSet<>();
+        int i = 1;
+
+        while (true) {
+            if (
+                    PeerComunication.sendMessageToPeer(
+                            senderNode.getIpAddr(), senderNode.getPort(), "GET_ROUTING_TABLE", null
+                    ) instanceof RoutingTable senderRoutingTable
+            ) {
+                System.out.println("===== FIND_VALUE Iteration [" + i + "] =====");
+
+                List<Node> toQuery = senderRoutingTable.getClosestNodes(Constants.MAX_RETURN_FIND_NODES, keyId);
+                int newNodes = 0;
+
+                for (Node node : toQuery) {
+                    if (!queriedNodes.contains(node)) {
+                        queriedNodes.add(node);
+
+                        Object response = PeerComunication.sendMessageToPeer(node.getIpAddr(), node.getPort(),
+                                "FIND_VALUE", keyId);
+
+                        if (response instanceof Block foundValue && foundValue != null) {
+                            System.out.printf("Value found in [%s,%s,%s]\n"
+                                    , node.getNodeId(), node.getIpAddr(), node.getPort());
+                            // Tries to add to sender local storage
+                            Operations.store(senderNode,key,foundValue);
+                            System.out.println("==================================");
+                            return foundValue;
+                        } else if (response instanceof List<?> returnedNodes) {
+                            for (Object obj : returnedNodes) {
+                                if (obj instanceof Node n && !discoveredNodes.contains(n)) {
+                                    discoveredNodes.add(n);
+                                    newNodes++;
+                                }
+                            }
+                        }
+                    }
+                }
+                //System.out.println("==> " + discoveredNodes);
+
+                if (newNodes == 0) {
+                    System.out.println("Value ["+ keyId + "] not found");
+                    System.out.println("==================================");
+                    return null;
+                }
+
+                updatePeer(senderNode, new ArrayList<>(discoveredNodes));
+                System.out.println("==================================");
+                i++;
+            } else {
+                System.out.println("Error ao obter routing table.");
+                break;
+            }
+        }
+        return null;
     }
 
     /**

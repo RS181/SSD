@@ -78,7 +78,7 @@ public class Client {
                     findNodeHandler(scanner);
                     break;
                 case "2": // FIND_VALUE
-                    System.out.println("TODO: FIND_VALUE");
+                    findValueHandler(scanner);
                     break;
                 case "3": // PING
                     pingHandler(scanner);
@@ -141,6 +141,15 @@ public class Client {
             System.out.println(peerServerHost + " " + peerServerPort + " --[FIND_NODE]--> " + ipAddr + " " + port);
             Operations.findNode(sender, target.getNodeId());
         }
+    }
+
+    private void findValueHandler(Scanner scanner) {
+        System.out.println("Insert the key you want to do FIND_VALUE: ");
+        String key = scanner.nextLine();
+        Node sender = new Node(peerServerHost,peerServerPort,false);
+
+        Block value = Operations.findValue(sender,key);
+        System.out.printf("Result of FIND_VALUE(%s) = %s\n",key,value);
     }
 
     private void pingHandler(Scanner scanner) {

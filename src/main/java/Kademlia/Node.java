@@ -6,6 +6,7 @@ import Cryptography.CryptoUtils;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Class that represents a kademlia Node in a  p2p network
@@ -84,12 +85,14 @@ public class Node implements Serializable {
     }
 
     /**
-     * Stores a <key,value> Pair in node's local storage
-     * @param key correspnds to a hash, that will serve as key
-     * @param value cooresponds to a block, that will serve as value
+     * Stores a key-value pair in the node's local storage if the key does not already exist.
+     *
+     * @param key   The key, which corresponds to a key id, used to identify the value.
+     * @param value The value, which corresponds to a block, associated with the key.
      */
     public void storeKeyValuePair(String key,Block value){
-        localStorage.put(key,value);
+        if (localStorage.get(key) == null)
+            localStorage.put(key,value);
     }
 
     /**
@@ -112,6 +115,10 @@ public class Node implements Serializable {
             return true;
         }
         return false;
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(nodeId, ipAddr, port);
     }
     @Override
     public String toString() {
