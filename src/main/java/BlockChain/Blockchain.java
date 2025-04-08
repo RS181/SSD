@@ -134,32 +134,34 @@ public class Blockchain implements Serializable {
     }
 
     /**
-     * Returns a set of available auction IDs based on the auction life cycle.
+     * Returns a set of available auction IDs based on the current state of the blockchain.
      * <p>
-     * This method traverses all blocks in the blockchain and processes their transactions to
-     * determine which auctions are currently available. An auction is considered available if it has
-     * been created and started but not yet closed. The expected logical flow of an auction is:
-     * <pre>
-     * CREATE_AUCTION -> START_AUCTION -> PLACE_BID(s) -> CLOSE_AUCTION
-     * </pre>
-     *
+     * This method iterates through all blocks in the blockchain and examines their transactions
+     * to determine which auctions are currently available. An auction is considered available
+     * if it has been {@code START_AUCTION} but not yet {@code CLOSE_AUCTION}.
+     *</p>
      * @return A set containing the IDs of auctions that are currently available
      *         (i.e., started but not closed).
      *
-     * @implNote The logic that ensures transactions follow a valid sequence and structure
-     *           is handled in the {@code ClientHandler} class. When a client submits a transaction,
-     *           {@code ClientHandler} verifies whether the transaction is valid and logically consistent
-     *           with the current state of the auction system.
+     * @implNote The responsibility for ensuring that transactions follow a valid logical sequence
+     *           is handled by the {@code ClientHandler} class. When a client submits a transaction,
+     *           {@code ClientHandler} checks whether it is valid within the current state of the system.
      */
     public Set<String> getAvailableAuctions(){
         Set<String> ans = new HashSet<>();
-        Set<String> aux  = new HashSet<>();
         for(Block b : blockchain){
             ArrayList<Transaction> transactionsInBlock = b.getTransactions();
             for(Transaction t: transactionsInBlock){
                 String auctionId = t.getAuctionId();
                 Transaction.TransactionType auctionType = t.getType();
-                //TODO
+
+                if(auctionType == Transaction.TransactionType.START_AUCTION) {
+                    ans.add(auctionId);
+                }
+                else if (auctionType.equals(Transaction.TransactionType.CLOSE_AUCTION)
+                && ans.contains(auctionId)){
+                    ans.remove(auctionId);
+                }
             }
         }
         return ans;
