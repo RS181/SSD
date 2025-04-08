@@ -71,7 +71,7 @@ public class ClientHandler implements Runnable {
                         storeHandler(in, out);
                         break;
 
-                        // Kademlia/App related methods
+                    // Kademlia/App related methods
                     case "REMOVE_PEER":
                         removePeerHandler(in,out);
                         break;
@@ -346,13 +346,15 @@ public class ClientHandler implements Runnable {
                     clientOut.writeObject("Dont have enough trasanctions to mine a block");
                     clientOut.flush();
                 } else {
+                    logger.info("Received MINE message");
                     String prevhash = "";
                     if (blockchain.getLastBlock() != null)
                         prevhash = blockchain.getLastBlock().getBlockHash();
 
+                    logger.info("Started Mining Block ...");
                     // Mine block and try to add to blockchain
                     Block b = miner.mineBlock(new ArrayList<>(transactionsPool), prevhash);
-
+                    logger.info("Finished Mining Block !!!");
                     // Check if client's socket is still open
                     if (!client.isClosed()) {
                         System.out.println("Client Socket is open");
@@ -444,6 +446,7 @@ public class ClientHandler implements Runnable {
                 if (receivedObject instanceof Transaction t) {
                     transactionsPool.add(t);
                     clientOut.writeObject("OK");
+
                 } else {
                     clientOut.writeObject("Error: Only accept transactions");
                     logger.warning("Error: Did not receive a transaction (addTransactionHandler)");
@@ -452,7 +455,15 @@ public class ClientHandler implements Runnable {
                 logger.severe("Error ocured (addTransactionHandler)");
             }
         }
+        // Had to put this block here because mineHandler also
+        // syncronizes in transactionsPool 
+        if (transactionsPool.size() >= 3){
+            PeerComunication.sendMessageToPeer(
+                    server.host, server.port,"MINE",null
+            );
+        }
     }
+
 
     /**
      *  Sends the transaction pool stored in the peer to the client.
