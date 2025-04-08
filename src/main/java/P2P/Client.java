@@ -27,13 +27,13 @@ public class Client {
 
     private static String getOptionsMenu(){
         return "----------------------------------" + '\n' +
-                " 0 - NONE " + '\n' +
-                " 1 - Find Kademlia Node" + '\n' +
-                " 2 - Find Value" + '\n' +
-                " 3 - Ping" + '\n' +
-                " 4 - (Test) Store" + '\n' +
-                " 5 - Mine Block" + '\n' +
-                " 6 - Create Auction" + '\n' +
+                " 0 - Find Kademlia Node " + '\n' +
+                " 1 - Find Value" + '\n' +
+                " 2 - Ping" + '\n' +
+                " 3 - (Test) Store" + '\n' +
+                " 4 - Mine Block" + '\n' +
+                " 5 - Create Auction" + '\n' +
+                " 6 - Start Auction" + '\n' +
                 " 7 - Place Bid" + '\n' +
                 " 8 - Search for available Auctions" + '\n' +
                 " 9 - Get Server info" + '\n' +
@@ -71,26 +71,26 @@ public class Client {
                 case "menu":
                     System.out.println(getOptionsMenu());
                     break;
-                case "0":
-                    // todo: este ponto esta vazio
-                    break;
-                case "1": // FIND_NODE
+                case "0": // FIND_NODE
                     findNodeHandler(scanner);
                     break;
-                case "2": // FIND_VALUE
+                case "1": // FIND_VALUE
                     findValueHandler(scanner);
                     break;
-                case "3": // PING
+                case "2": // PING
                     pingHandler(scanner);
                     break;
-                case "4": // STORE
+                case "3": // STORE
                     clientStoreHandler(scanner);
                     break;
-                case "5": // Mine a block
+                case "4": // Mine a block
                     clientMineHandler(peerServerHost, peerServerPort);
                     break;
-                case "6": // Create auction
+                case "5": // Create auction
                     createAuctionHandler(scanner, username, peerServerHost, peerServerPort);
+                    break;
+                case "6": // Start auction
+                    // TODO
                     break;
                 case "7": // Place Bid
                     System.out.println("TODO: Place Bid");
