@@ -13,16 +13,16 @@ public class Transaction implements Serializable {
     }
     private final String owner;
     private final TransactionType type;
-    private final String transactionId;
-    private final String auctionId;
+    private final String transactionId; // Uniquely identifies a Single transaction
+    private final String auctionId; // Uniquely identifies an auction owner:auctionName
     private final long timestamp;
     private final double bidAmount; // Only used in "PLACE_BID"
 
 
-    public Transaction(String owner, TransactionType type, String auctionId, double bidAmount, long timestamp) {
+    public Transaction(String owner, TransactionType type, String auctionName, double bidAmount, long timestamp) {
         this.owner = owner;
         this.type = type;
-        this.auctionId = auctionId;
+        this.auctionId = owner + ":" + auctionName;
         this.bidAmount = bidAmount;
         this.timestamp = timestamp;
         this.transactionId = generateTransactionId();
