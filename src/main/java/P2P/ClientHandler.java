@@ -91,6 +91,9 @@ public class ClientHandler implements Runnable {
                         break;
 
                     // App related methods
+                    case "GET_AVAILABLE_AUCTIONS":
+                        getAvailableAuctions(out);
+                        break;
                     case "GET_TRANSACTION_POOL":
                         getTransactionPool(out);
                         break;
@@ -419,6 +422,9 @@ public class ClientHandler implements Runnable {
     }
 
     /**
+     *TODO ajustar este método para seguir a lógica de adicionar transações
+     * válidas que respeitam a "lógica" dos leilões
+     *
      * Handles the addition of a transaction sent by the client.
      * <p>
      * If a valid transaction is received, it is added to the transaction pool,
@@ -456,11 +462,35 @@ public class ClientHandler implements Runnable {
             }
         }
         // Had to put this block here because mineHandler also
-        // syncronizes in transactionsPool 
+        // syncronizes in transactionsPool
         if (transactionsPool.size() >= 3){
             PeerComunication.sendMessageToPeer(
                     server.host, server.port,"MINE",null
             );
+        }
+    }
+
+
+    /**
+     * Sends the currently available auctions in Peer to the client.
+     * <p>
+     * This method retrieves the list of available auctions from the blockchain, considering only the
+     * transactions that are already confirmed and stored in blocks (i.e., it ignores any transactions
+     * still in the transaction pool). An auction is considered available if it has been
+     * {@code CREATE_AUCTION} and {@code START_AUCTION}, but not {@code CLOSE_AUCTION}.
+     * <p>
+     * The blockchain access is synchronized to ensure thread safety.
+     *
+     * @param clientOut the output stream of the client
+     */
+    private void getAvailableAuctions(ObjectOutputStream clientOut) {
+        synchronized (blockchain){
+            try{
+                clientOut.writeObject(blockchain.getAvailableAuctions());
+                clientOut.flush();
+            }catch (Exception e){
+                logger.severe("Error ocured (getAvailableAuctions)");
+            }
         }
     }
 

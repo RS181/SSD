@@ -96,7 +96,7 @@ public class Client {
                     System.out.println("TODO: Place Bid");
                     break;
                 case "8": // Search for available auctions (that are still active)
-                    System.out.println("TODO: Search for available auctions");
+                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_AVAILABLE_AUCTIONS",null));
                     break;
                 case "9": // Get Server info
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_SERVER_INFO",null));
@@ -186,8 +186,6 @@ public class Client {
 
         Operations.store(sender,key,value);
     }
-
-
 
 
 
