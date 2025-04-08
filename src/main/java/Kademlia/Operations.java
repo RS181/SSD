@@ -142,6 +142,30 @@ public class Operations {
         System.out.println("====================================");
     }
 
+    /**
+     * Performs the FIND_VALUE operation in the Kademlia network.
+     * <p>
+     * This method attempts to locate the value (a {@link Block}) associated with the provided key.
+     * It starts by generating the key ID (based on the key string), and then uses the sender node's
+     * routing table to find the closest known nodes to that key.
+     * </p>
+     *
+     * <p>
+     * The method iteratively queries unqueried closest nodes, asking each one for the value.
+     * If a node returns the value, it is immediately returned and also stored locally at the sender node
+     * for future lookups. If the value is not found, and no new nodes are discovered, the search ends
+     * unsuccessfully.
+     * </p>
+     *
+     * <p>
+     * This implementation assumes a broadcast-style network where the initial routing table
+     * returns all nodes in the network, as per a simplified Kademlia variant.
+     * </p>
+     *
+     * @param senderNode The node initiating the FIND_VALUE operation.
+     * @param key        The key associated with the value being searched.
+     * @return The {@link Block} value if found, or {@code null} if not found in the network.
+     */
     public static Block findValue(Node senderNode, String key) {
         String keyId = generateKeyId(key);
         Set<Node> queriedNodes = new HashSet<>();
