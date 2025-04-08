@@ -170,7 +170,36 @@ public class ClientHandler implements Runnable {
     }
 
     private void findValueHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        // TODO
+        logger.info("Received Find Value message");
+        try {
+            // Syncronize on kademlia Node to avoid race conditions between threads
+            synchronized (kademliaNode){
+                clientOut.writeObject("OK");
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+
+                if (receivedObject instanceof String keyId){
+                    Block b = kademliaNode.getValue(keyId);
+                    if (b != null){
+                        logger.info("Value found in local storage");
+                        clientOut.writeObject(b);
+                    }
+                    else {
+                        logger.warning("Value not found in local storage");
+                        List<Node>  closestNodestoKey =
+                            kademliaNode.getRoutingTable().getClosestNodes
+                                    (Constants.MAX_ROUTING_FIND_NODES,keyId);
+                        clientOut.writeObject(closestNodestoKey);
+                    }
+                }else{
+                    clientOut.writeObject("Error: Expected String but received something else");
+                    logger.warning("Error: Did not receive a String (findValueHandler)");
+                }
+            }
+        }catch (Exception e){
+            logger.severe("Error ocured (findValueHandler)");
+        }
     }
 
     /**
