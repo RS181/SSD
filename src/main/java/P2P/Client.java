@@ -124,6 +124,8 @@ public class Client {
     }
 
     private void findNodeHandler(Scanner scanner) {
+        //TODO: ajustar isto para deixar mais claro se estamos a fazer
+        // um FIND_NODE ou JOIN_NETWORK
         System.out.println("Insert the Ip address for FIND_NODE");
         String ipAddr = scanner.nextLine();
         System.out.println("Insert the Port for FIND_NODE");
@@ -195,10 +197,10 @@ public class Client {
     }
     private static void createAuctionHandler(Scanner scanner, String username, String peerServerHost, int peerServerPort) {
         System.out.println("Insert a name for the auction");
-        String auctionId= scanner.nextLine();
+        String auctionName= scanner.nextLine();
         Transaction createAuction =
                 new Transaction(username, Transaction.TransactionType.CREATE_AUCTION,
-                        auctionId,0,new Date().getTime());
+                        auctionName,0,new Date().getTime());
         System.out.println("Waiting for Response from Peer Server...");
         System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",createAuction));
 
