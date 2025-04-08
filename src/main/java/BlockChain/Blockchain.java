@@ -4,8 +4,7 @@ import Cryptography.CryptoUtils;
 
 import java.io.Serializable;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class contains a list of blocks and a methods to:
@@ -132,6 +131,49 @@ public class Blockchain implements Serializable {
             d = CryptoUtils.verifySignature(minerPublickKey,blockHeader.getBytes(),minerSignature);
 
         return a && b && c && d;
+    }
+
+    /**
+     * Returns a set of available auction IDs based on the auction life cycle.
+     * <p>
+     * This method traverses all blocks in the blockchain and processes their transactions to
+     * determine which auctions are currently available. An auction is considered available if it has
+     * been created and started but not yet closed. The expected logical flow of an auction is:
+     * <pre>
+     * CREATE_AUCTION -> START_AUCTION -> PLACE_BID(s) -> CLOSE_AUCTION
+     * </pre>
+     *
+     * @return A set containing the IDs of auctions that are currently available
+     *         (i.e., started but not closed).
+     *
+     * @implNote The logic that ensures transactions follow a valid sequence and structure
+     *           is handled in the {@code ClientHandler} class. When a client submits a transaction,
+     *           {@code ClientHandler} verifies whether the transaction is valid and logically consistent
+     *           with the current state of the auction system.
+     */
+    public Set<String> getAvailableAuctions(){
+        Set<String> ans = new HashSet<>();
+        Set<String> aux  = new HashSet<>();
+        for(Block b : blockchain){
+            ArrayList<Transaction> transactionsInBlock = b.getTransactions();
+            for(Transaction t: transactionsInBlock){
+                String auctionId = t.getAuctionId();
+                Transaction.TransactionType auctionType = t.getType();
+
+                if(auctionType.equals(Transaction.TransactionType.CREATE_AUCTION))
+                    aux.add(auctionId);
+                else if (auctionType.equals(Transaction.TransactionType.START_AUCTION)){
+                    if(aux.contains(auctionId))
+                        ans.add(auctionId);
+                } else if (auctionType.equals(Transaction.TransactionType.CLOSE_AUCTION)) {
+                    if(aux.contains(auctionId)) {
+                        ans.remove(auctionId);
+                        aux.remove(auctionId);
+                    }
+                }
+            }
+        }
+        return ans;
     }
 
     @Override
