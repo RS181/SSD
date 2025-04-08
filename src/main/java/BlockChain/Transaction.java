@@ -9,7 +9,7 @@ import java.util.Base64;
 /*Class that represents a Transaction (Operation) */
 public class Transaction implements Serializable {
     public enum TransactionType {
-        CREATE_AUCTION, START_AUCTION, CLOSE_AUCTION, PLACE_BID
+         START_AUCTION, CLOSE_AUCTION, PLACE_BID
     }
     private final String owner;
     private final TransactionType type;

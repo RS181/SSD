@@ -32,7 +32,7 @@ public class Client {
                 " 2 - Ping" + '\n' +
                 " 3 - (Test) Store" + '\n' +
                 " 4 - Mine Block" + '\n' +
-                " 5 - Create Auction" + '\n' +
+                " 5 - TODO: nao associa a nada " + '\n' +
                 " 6 - Start Auction" + '\n' +
                 " 7 - Place Bid" + '\n' +
                 " 8 - Search for available Auctions" + '\n' +
@@ -87,10 +87,11 @@ public class Client {
                     clientMineHandler(peerServerHost, peerServerPort);
                     break;
                 case "5": // Create auction
-                    createAuctionHandler(scanner, username, peerServerHost, peerServerPort);
+                    // No longer available
+                    //createAuctionHandler(scanner, username, peerServerHost, peerServerPort);
                     break;
                 case "6": // Start auction
-                    // TODO
+                    startAuctionHanlder(scanner);
                     break;
                 case "7": // Place Bid
                     System.out.println("TODO: Place Bid");
@@ -179,7 +180,7 @@ public class Client {
         String key = scanner.nextLine();
 
         ArrayList<Transaction> startAuction = new ArrayList<>();
-        startAuction.add(new Transaction("user1", Transaction.TransactionType.CREATE_AUCTION, "AUC123", 0, System.currentTimeMillis()));
+        startAuction.add(new Transaction("user1", Transaction.TransactionType.START_AUCTION, "AUC123", 0, System.currentTimeMillis()));
         // No need to mine, because we are just using this for test purposes
         Block value = new Block(startAuction,"");
         Node sender = new Node(peerServerHost,peerServerPort,false);
@@ -193,8 +194,10 @@ public class Client {
         System.out.println("Waiting for Response from Peer Server...");
         System.out.println("Peer Server Response: " + PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"MINE",null));
     }
+
+    /*
     private static void createAuctionHandler(Scanner scanner, String username, String peerServerHost, int peerServerPort) {
-        System.out.println("Insert a name for the auction");
+        System.out.println("Insert a name for the auction you want to Start");
         String auctionName= scanner.nextLine();
         Transaction createAuction =
                 new Transaction(username, Transaction.TransactionType.CREATE_AUCTION,
@@ -203,5 +206,15 @@ public class Client {
         System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",createAuction));
 
     }
+     */
+    private void startAuctionHanlder(Scanner scanner) {
+        System.out.println("Insert the name for the auction you want to Create and Start");
+        String auctionName = scanner.nextLine();
+        Transaction startAuction =
+                new Transaction(username, Transaction.TransactionType.START_AUCTION,
+                        auctionName,0,new Date().getTime());
 
+        System.out.println("Waiting for Response from Peer Server...");
+        System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",startAuction));
+    }
 }
