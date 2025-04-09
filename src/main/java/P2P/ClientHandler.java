@@ -423,8 +423,6 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     *TODO ajustar este método para seguir a lógica de adicionar transações
-     * válidas que respeitam a "lógica" dos leilões
      *
      * Handles the addition of a transaction sent by the client.
      * <p>
@@ -452,8 +450,13 @@ public class ClientHandler implements Runnable {
 
                 if (receivedObject instanceof Transaction t) {
 
-                    transactionsPool.add(t);
-                    clientOut.writeObject("OK");
+                    if (checkTransaction(t,t.getType())) {
+                        transactionsPool.add(t);
+                        clientOut.writeObject("OK");
+                    }else{
+                        clientOut.writeObject("NOT OK: Invalid transaction");
+                    }
+
 
                 } else {
                     clientOut.writeObject("Error: Only accept transactions");
@@ -472,12 +475,57 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private Boolean checkTransaction(Transaction t, Transaction.TransactionType transactionType){
-        switch (transactionType){
-           // TODO
+    private Boolean checkTransaction(Transaction t, Transaction.TransactionType type){
+        Boolean ans = true;
+        switch (type){
+            case START_AUCTION:
+                System.out.println("Received START_AUCTION");
+                ans = checkStartAuction(t);
+                System.out.printf("Check START_AUCTION %s = %s\n",t.getAuctionId(),ans);
+
+                break;
+            case CLOSE_AUCTION:
+                System.out.println("Received STOP_AUCTION");
+                break;
+            case PLACE_BID:
+                System.out.println("Received PLACE_BID");
+                break;
+            default:
+                System.out.println("Error Unkown Transaction type");
+                break;
         }
 
-        return false;
+        return ans;
+    }
+
+    /**
+     * Checks whether a {@code START_AUCTION} transaction can be accepted based on the current state
+     * of the blockchain and the transaction pool.
+     * <p>
+     * This method ensures that there is no existing auction (either already started or pending in
+     * the transaction pool) with the same {@code auctionId} as the one provided. It prevents
+     * duplicate {@code START_AUCTION} transactions for the same auction.
+     * </p>
+     * @param t The {@code START_AUCTION} transaction to validate.
+     * @return {@code true} if no auction with the same ID exists in the blockchain or transaction pool;
+     *         {@code false} otherwise.
+     * @note here we don't accept START_AUCTION transactions
+     *       with the same auctionId, that means that a client
+     *       can't start more than one auction with the
+     *       same auctionName, because auctionId = auctionName+username
+     */
+    private Boolean checkStartAuction(Transaction t) {
+        String auctionId = t.getAuctionId();
+        Set<String> availableAuctions = blockchain.getAvailableAuctions();
+        for (String auction : availableAuctions){
+            if(auction.equals(auctionId))
+                return false;
+        }
+        for (Transaction tp : transactionsPool){
+            if(tp.getAuctionId().equals(auctionId))
+                return false;
+        }
+        return true;
     }
 
     /**
