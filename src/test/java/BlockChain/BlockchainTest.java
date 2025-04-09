@@ -27,7 +27,7 @@ class BlockchainTest {
     @BeforeEach
     void setup(){
         blockchain = new Blockchain();
-        startAuction.add(new Transaction("user1", Transaction.TransactionType.CREATE_AUCTION, "AUC123", 0, System.currentTimeMillis()));
+        startAuction.add(new Transaction("user1", Transaction.TransactionType.START_AUCTION, "AUC123", 0, System.currentTimeMillis()));
         placeBids.add(new Transaction("user2", Transaction.TransactionType.PLACE_BID, "AUC123", 100.50, System.currentTimeMillis()));
         placeBids.add(new Transaction("user1", Transaction.TransactionType.PLACE_BID, "AUC123", 150.75, System.currentTimeMillis()));
         closeAuction.add(new Transaction("user2", Transaction.TransactionType.CLOSE_AUCTION, "AUC123", 0, System.currentTimeMillis()));
