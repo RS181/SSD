@@ -482,10 +482,11 @@ public class ClientHandler implements Runnable {
                 System.out.println("Received START_AUCTION");
                 ans = checkStartAuction(t);
                 System.out.printf("Check START_AUCTION %s = %s\n",t.getAuctionId(),ans);
-
                 break;
             case CLOSE_AUCTION:
                 System.out.println("Received STOP_AUCTION");
+                ans = checkStopAuction(t);
+                System.out.printf("Check STOP_AUCTION %s = %s\n",t.getAuctionId(),ans);
                 break;
             case PLACE_BID:
                 System.out.println("Received PLACE_BID");
@@ -494,7 +495,6 @@ public class ClientHandler implements Runnable {
                 System.out.println("Error Unkown Transaction type");
                 break;
         }
-
         return ans;
     }
 
@@ -512,7 +512,8 @@ public class ClientHandler implements Runnable {
      * @note here we don't accept START_AUCTION transactions
      *       with the same auctionId, that means that a client
      *       can't start more than one auction with the
-     *       same auctionName, because auctionId = auctionName+username
+     *       same auctionName, because auctionId = auctionName+username.
+     *       This maintains even if the auction has CLOSED!!!
      */
     private Boolean checkStartAuction(Transaction t) {
         String auctionId = t.getAuctionId();
@@ -526,6 +527,24 @@ public class ClientHandler implements Runnable {
                 return false;
         }
         return true;
+    }
+
+    private Boolean checkStopAuction(Transaction t) {
+        // Check if there exists a START_AUCTION with
+        // the same auctionId (check blockchain and
+        // trasanction pool)
+        String auctionId = t.getAuctionId();
+        Set<String> availableAuctions = blockchain.getAvailableAuctions();
+        for (String auction : availableAuctions){
+            if(auction.equals(auctionId))
+                return true;
+        }
+        for (Transaction tp : transactionsPool){
+            if(tp.getAuctionId().equals(auctionId)
+                    && tp.getType().equals(Transaction.TransactionType.START_AUCTION))
+                return true;
+        }
+        return false;
     }
 
     /**
