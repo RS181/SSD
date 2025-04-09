@@ -138,29 +138,34 @@ public class Blockchain implements Serializable {
      * <p>
      * This method iterates through all blocks in the blockchain and examines their transactions
      * to determine which auctions are currently available. An auction is considered available
-     * if it has been {@code START_AUCTION} but not yet {@code CLOSE_AUCTION}.
-     *</p>
+     * if it has been {@code START_AUCTION} and has not been {@code CLOSE_AUCTION} afterward —
+     * even if {@code CLOSE_AUCTION} appears before {@code START_AUCTION} in the chain.
+     * </p>
+     *
      * @return A set containing the IDs of auctions that are currently available
-     *         (i.e., started but not closed).
+     *         (i.e., started and not closed).
      *
      * @implNote The responsibility for ensuring that transactions follow a valid logical sequence
      *           is handled by the {@code ClientHandler} class. When a client submits a transaction,
      *           {@code ClientHandler} checks whether it is valid within the current state of the system.
      */
-    public Set<String> getAvailableAuctions(){
+    public Set<String> getAvailableAuctions() {
         Set<String> ans = new HashSet<>();
-        for(Block b : blockchain){
+        Set<String> closed = new HashSet<>();
+
+        for (Block b : blockchain) {
             ArrayList<Transaction> transactionsInBlock = b.getTransactions();
-            for(Transaction t: transactionsInBlock){
+            for (Transaction t : transactionsInBlock) {
                 String auctionId = t.getAuctionId();
                 Transaction.TransactionType auctionType = t.getType();
 
-                if(auctionType == Transaction.TransactionType.START_AUCTION) {
-                    ans.add(auctionId);
-                }
-                else if (auctionType.equals(Transaction.TransactionType.CLOSE_AUCTION)
-                && ans.contains(auctionId)){
-                    ans.remove(auctionId);
+                if (auctionType == Transaction.TransactionType.CLOSE_AUCTION) {
+                    closed.add(auctionId); // Mark as closed, regardless of previous START
+                    ans.remove(auctionId); // Ensure it's no longer available
+                } else if (auctionType == Transaction.TransactionType.START_AUCTION) {
+                    if (!closed.contains(auctionId)) {
+                        ans.add(auctionId); // Only add if not previously closed
+                    }
                 }
             }
         }
