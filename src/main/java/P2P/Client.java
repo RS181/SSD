@@ -216,6 +216,7 @@ public class Client {
         System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",startAuction));
     }
 
+    // Only the user that Started an auction can Stop it !!
     private void stopAuctionHandler(Scanner scanner) {
         System.out.println("Insert the name for the auction you want to Stop");
         String auctionName = scanner.nextLine();
