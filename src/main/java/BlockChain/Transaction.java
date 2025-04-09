@@ -11,7 +11,8 @@ public class Transaction implements Serializable {
     public enum TransactionType {
          START_AUCTION, CLOSE_AUCTION, PLACE_BID
     }
-    private final String owner;
+    private final String owner; // owner of auction
+    private final String username; // user that made this Trasanction
     private final TransactionType type;
     private final String transactionId; // Uniquely identifies a Single transaction
     private final String auctionId; // Uniquely identifies an auction owner:auctionName
@@ -19,8 +20,9 @@ public class Transaction implements Serializable {
     private final double bidAmount; // Only used in "PLACE_BID"
 
 
-    public Transaction(String owner, TransactionType type, String auctionName, double bidAmount, long timestamp) {
+    public Transaction(String owner,String username, TransactionType type, String auctionName, double bidAmount, long timestamp) {
         this.owner = owner;
+        this.username = username;
         this.type = type;
         this.auctionId = owner + ":" + auctionName;
         this.bidAmount = bidAmount;
@@ -41,6 +43,7 @@ public class Transaction implements Serializable {
     public String toString() {
         return "\n\tTransaction Details:\n" +
                 "\t\tOwner: " + owner + "\n" +
+                "\t\tUser that made transaction: " + username + "\n" +
                 "\t\tTransaction Id: " + transactionId + "\n" +
                 "\t\tAuction Id: " + auctionId + "\n" +
                 "\t\tTransaction type: " + type + "\n" +
