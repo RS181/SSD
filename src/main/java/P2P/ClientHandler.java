@@ -15,6 +15,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -90,7 +91,7 @@ public class ClientHandler implements Runnable {
                         addTransactionHandler(in, out);
                         break;
 
-                    // App related methods
+                    // App only related methods
                     case "GET_AVAILABLE_AUCTIONS":
                         getAvailableAuctions(out);
                         break;
@@ -450,6 +451,7 @@ public class ClientHandler implements Runnable {
                 Object receivedObject = clientIn.readObject();
 
                 if (receivedObject instanceof Transaction t) {
+
                     transactionsPool.add(t);
                     clientOut.writeObject("OK");
 
@@ -470,6 +472,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private Boolean checkTransaction(Transaction t, Transaction.TransactionType transactionType){
+        switch (transactionType){
+           // TODO
+        }
+
+        return false;
+    }
 
     /**
      * Sends the currently available auctions in Peer to the client.
@@ -477,7 +486,7 @@ public class ClientHandler implements Runnable {
      * This method retrieves the list of available auctions from the blockchain, considering only the
      * transactions that are already confirmed and stored in blocks (i.e., it ignores any transactions
      * still in the transaction pool). An auction is considered available if it has been
-     * {@code CREATE_AUCTION} and {@code START_AUCTION}, but not {@code CLOSE_AUCTION}.
+     *  {@code START_AUCTION}, but not {@code CLOSE_AUCTION}.
      * <p>
      * The blockchain access is synchronized to ensure thread safety.
      *
