@@ -55,20 +55,26 @@ public class Miner {
     }
 
     /**
-     * This function returns the newly created block ONLY after the mineBlock() method is executed.
-     * Also it :
-     * --> Sort's the list of transanctions by transaction Id
-     * --> Sign's the mined block with Miner's Digital Signature
-     * --> Sets the publick key of miner that mined the block (to facilitate verification)
-     * @param tranctions list of transanctions
-     * @param previousBlockHash Hash of last block in the blockchain
-     * @return The newly mined Block with Miner's signature set
+     * Mines a new block from the given list of transactions and the hash of the previous block.
+     * <p>
+     * This method performs the following steps:
+     * <ul>
+     *     <li>Sorts the list of transactions in ascending order based on their timestamp
+     *         (to ensure a consistent transaction order for block hashing across all nodes).</li>
+     *     <li>Creates a new block with the sorted transactions and the previous block's hash.</li>
+     *     <li>Executes the Proof of Work algorithm to mine the block.</li>
+     *     <li>Signs the mined block with the miner's digital signature.</li>
+     *     <li>Attaches the miner's public key to the block for signature verification purposes.</li>
+     * </ul>
+     * If the mining process is interrupted (i.e., a stop signal is received), the method returns {@code null}.
+     *
+     * @param tranctions        List of transactions to include in the block.
+     * @param previousBlockHash Hash of the most recent block in the blockchain.
+     * @return The newly mined and signed {@code Block}, or {@code null} if mining was interrupted.
      */
     public Block mineBlock(ArrayList<Transaction> tranctions, String previousBlockHash) {
-        // Order the transction by TransactionId (so that everyone sees the transaction
-        // in the same order and therefore everyone will calculate the same block hash)
-        tranctions.sort(Comparator.comparing(Transaction::getTransactionId));
-        this.minedBlock = new Block(tranctions,previousBlockHash);
+        // Sort transactions by timestamp in ascending order
+        tranctions.sort(Comparator.comparingLong(Transaction::getTimestamp));        this.minedBlock = new Block(tranctions,previousBlockHash);
         minedBlock = proofOfWork(minedBlock,Constants.DIFFICULTY);
         if (stopMining) { // Check if miner 'received' stop signal (if so return null)
             stopMining = false; // reset
