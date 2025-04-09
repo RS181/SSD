@@ -529,10 +529,19 @@ public class ClientHandler implements Runnable {
         return true;
     }
 
+    /**
+     * Checks whether a {@code CLOSE_AUCTION} transaction is valid by verifying that a corresponding
+     * {@code START_AUCTION} transaction exists either in the blockchain or in the transaction pool.
+     * <p>
+     * This ensures that an auction can only be stopped if it has already been started.
+     *
+     * @param t The {@code CLOSE_AUCTION} transaction to validate.
+     * @return {@code true} if a matching {@code START_AUCTION} transaction with the same auction ID
+     *         exists in the blockchain or transaction pool; {@code false} otherwise.
+     *
+     * @note Only the user that made the {@code START_AUCTION} can {@code CLOSE_AUCTION}
+     */
     private Boolean checkStopAuction(Transaction t) {
-        // Check if there exists a START_AUCTION with
-        // the same auctionId (check blockchain and
-        // trasanction pool)
         String auctionId = t.getAuctionId();
         Set<String> availableAuctions = blockchain.getAvailableAuctions();
         for (String auction : availableAuctions){
