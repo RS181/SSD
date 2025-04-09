@@ -14,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -457,7 +458,6 @@ public class ClientHandler implements Runnable {
                         clientOut.writeObject("NOT OK: Invalid transaction");
                     }
 
-
                 } else {
                     clientOut.writeObject("Error: Only accept transactions");
                     logger.warning("Error: Did not receive a transaction (addTransactionHandler)");
@@ -468,6 +468,8 @@ public class ClientHandler implements Runnable {
         }
         // Had to put this block here because mineHandler also
         // syncronizes in transactionsPool
+        //TODO if trasanction is PLACE_BID, imediately send MINE (to avoid
+        // the problem of two user's having the same Bid)ME
         if (transactionsPool.size() >= 3){
             PeerComunication.sendMessageToPeer(
                     server.host, server.port,"MINE",null
@@ -490,6 +492,13 @@ public class ClientHandler implements Runnable {
                 break;
             case PLACE_BID:
                 System.out.println("Received PLACE_BID");
+                ans = checkPlaceBid(t);
+                System.out.printf("Check PLACE_BID %s = %s\n",t.getAuctionId(),ans);
+                // Todo temos de verificar várias coisas
+                // temos de ter cuidado para não ter o caso de termos
+                // 2 clientes a fazer bids com mesmo valor
+                // Sol. se for place Bid fazer logo o mining
+                // (para garantir que não temos estes casos)
                 break;
             default:
                 System.out.println("Error Unkown Transaction type");
@@ -549,11 +558,43 @@ public class ClientHandler implements Runnable {
                 return true;
         }
         for (Transaction tp : transactionsPool){
-            if(tp.getAuctionId().equals(auctionId)
-                    && tp.getType().equals(Transaction.TransactionType.START_AUCTION))
+            if(tp.getAuctionId().equals(auctionId) &&
+                    tp.getType().equals(Transaction.TransactionType.START_AUCTION))
                 return true;
         }
         return false;
+    }
+
+    private Boolean checkPlaceBid(Transaction t) {
+        String auctionId = t.getAuctionId();
+        Set<String> availableAuctions = blockchain.getAvailableAuctions();
+
+        //1. check if Place bid is made to an available auction (if not return false)
+        Boolean auctionExists = false;
+        for(String auction : availableAuctions){
+            if(auction.equals(auctionId)){
+                auctionExists = true;
+                break;
+            }
+        }
+
+        if (!auctionExists) return false;
+
+        //2. Get all bids that are made to this auctionId  and are in the Blockchain
+        Set<Transaction> existingBids = new HashSet<>();
+        for (Block b : blockchain.getBlockchain()){
+            for (Transaction tp : b.getTransactions()){
+                if(tp.getAuctionId().equals(auctionId) &&
+                        tp.getType().equals(Transaction.TransactionType.PLACE_BID)){
+                    existingBids.add(tp);
+                }
+            }
+        }
+
+        // TODO verificar se Bid feita é maior que as anteriores
+        System.out.printf("Existing bids to %s = %s\n",auctionId,existingBids);
+
+        return true;
     }
 
     /**

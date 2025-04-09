@@ -93,7 +93,7 @@ public class Client {
                     stopAuctionHandler(scanner);
                     break;
                 case "7": // Place Bid
-                    System.out.println("TODO: Place Bid");
+                    placeBidHandler(scanner);
                     break;
                 case "8": // Search for available auctions (that are still active)
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_AVAILABLE_AUCTIONS",null));
@@ -179,7 +179,7 @@ public class Client {
         String key = scanner.nextLine();
 
         ArrayList<Transaction> startAuction = new ArrayList<>();
-        startAuction.add(new Transaction("user1", Transaction.TransactionType.START_AUCTION, "AUC123", 0, System.currentTimeMillis()));
+        startAuction.add(new Transaction("user1","user1", Transaction.TransactionType.START_AUCTION, "AUC123", 0, System.currentTimeMillis()));
         // No need to mine, because we are just using this for test purposes
         Block value = new Block(startAuction,"");
         Node sender = new Node(peerServerHost,peerServerPort,false);
@@ -209,7 +209,7 @@ public class Client {
         System.out.println("Insert the name for the auction you want to Create and Start");
         String auctionName = scanner.nextLine();
         Transaction startAuction =
-                new Transaction(username, Transaction.TransactionType.START_AUCTION,
+                new Transaction(username,username, Transaction.TransactionType.START_AUCTION,
                         auctionName,0,new Date().getTime());
 
         System.out.println("Waiting for Response from Peer Server...");
@@ -221,11 +221,27 @@ public class Client {
         System.out.println("Insert the name for the auction you want to Stop");
         String auctionName = scanner.nextLine();
         Transaction stopAuction =
-                new Transaction(username, Transaction.TransactionType.CLOSE_AUCTION,
+                new Transaction(username,username, Transaction.TransactionType.CLOSE_AUCTION,
                         auctionName,0,new Date().getTime());
 
         System.out.println("Waiting for Response from Peer Server...");
         System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",stopAuction));
+    }
+
+    private void placeBidHandler(Scanner scanner) {
+        System.out.println("Insert the owner of auction you want to Place Bid");
+        String auctionOwner = scanner.nextLine();
+        System.out.println("Insert the name for the auction you want to Place Bid");
+        String auctionName = scanner.nextLine();
+        System.out.println("Insert the amount of the Bid");
+        Double bidAmount = scanner.nextDouble();
+        Transaction placeBid =
+                new Transaction(auctionOwner,username ,Transaction.TransactionType.PLACE_BID,
+                        auctionName,bidAmount,new Date().getTime());
+        System.out.println("Waiting for Response from Peer Server...");
+        System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",placeBid));
+
 
     }
+
 }
