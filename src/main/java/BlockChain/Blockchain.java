@@ -172,6 +172,45 @@ public class Blockchain implements Serializable {
         return ans;
     }
 
+    /**
+     * Retrieves all bid entries made for a specific auction, formatted as strings.
+     * <p>
+     * Each entry in the returned set is a string in the format {@code "username:bidAmount"},
+     * representing a bid placed by a user on the given auction.
+     * <p>
+     * The method performs the following steps:
+     * <ol>
+     *   <li>Checks if the specified auction ID exists in the set of currently available auctions.</li>
+     *   <li>If the auction is not available, the method returns {@code null}.</li>
+     *   <li>If available, iterates over the blockchain to find all {@code PLACE_BID} transactions
+     *       related to the specified auction ID.</li>
+     *   <li>For each matching bid, adds a string entry in the format {@code "username:bidAmount"} to the result set.</li>
+     * </ol>
+     *
+     * @param auctionId the ID of the auction for which bids are to be retrieved
+     *                  of auctionId = "owner:auctionName"
+     * @return a {@link Set} of bid strings in the format {@code "username:bidAmount"}, or {@code null} if the auction ID is not valid
+     */
+    public Set<String> getAllBids(String auctionId){
+        Set<String> ans = new HashSet<>();
+        Set<String> aux = getAvailableAuctions();
+
+        // 1. check if exists an available auction with this auctionId
+        if (!aux.contains(auctionId)) return null;
+
+        // 2. Get all the PLACE_BID made for auction with auctionId
+        for (Block b : blockchain){
+            ArrayList<Transaction> transactionsInBlock = b.getTransactions();
+            for (Transaction t : transactionsInBlock) {
+                String aucId = t.getAuctionId();
+
+                System.out.println("===>" + aucId.equals(auctionId));
+                if(aucId.equals(auctionId) && t.getType().equals(Transaction.TransactionType.PLACE_BID))
+                    ans.add(t.getUsername() + ":" + t.getBidAmount() );
+            }
+        }
+        return ans;
+    }
     @Override
     public String toString() {
         StringBuilder ans = new StringBuilder();

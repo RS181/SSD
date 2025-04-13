@@ -31,12 +31,16 @@ public class BlockChainProgram {
 
         ArrayList<Transaction> thirdTransactions = new ArrayList<>();
         thirdTransactions.add(new Transaction("user1","user1", Transaction.TransactionType.START_AUCTION, "AUC123", 0, System.currentTimeMillis()));
+        thirdTransactions.add(new Transaction("user1","user1", Transaction.TransactionType.PLACE_BID, "batatas", 100, System.currentTimeMillis()));
+        thirdTransactions.add(new Transaction("user1","user2", Transaction.TransactionType.PLACE_BID, "batatas", 200, System.currentTimeMillis()));
 
         Block thirdBlock = user2.mineBlock(thirdTransactions,blockchain.getLastBlock().getBlockHash());
         System.out.println("Add result =" +  blockchain.addBlock(thirdBlock, user2.getPublicKey()));
         System.out.println("Blockchain status = " + blockchain.checkCurrentChain());
         System.out.println(blockchain.getAvailableAuctions());
 
+        System.out.println(blockchain);
+        System.out.println(blockchain.getAllBids("user1:batatas"));
 
     }
 
