@@ -425,17 +425,17 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     *
-     * Handles the addition of a transaction sent by the client.
+     * Handles the addition of a new transaction received from a client over a network stream.
      * <p>
-     * If a valid transaction is received, it is added to the transaction pool,
-     * and the client is notified with an 'OK' response. If the received object
-     * is not a valid transaction, an error message is sent instead.
-     * </p>
-     * <p>
-     * This method synchronizes on the {@code transactionsPool} to prevent race conditions
-     * between threads.
-     * </p>
+     * This method reads a {@link Transaction} object sent by the client via {@link ObjectInputStream},
+     * validates it, and attempts to add it to the local transaction pool, {@code transactionsPool},
+     * based on specific rules:
+     * <ul>
+     *   <li>Only transactions deemed valid by {@code checkTransaction(t, t.getType())} are accepted.</li>
+     *   <li>If the transaction type is {@code PLACE_BID}, the pool must be empty (i.e., size &lt; 1) to accept it.</li>
+     *   <li>For other transaction types, the pool must have less than 3 transactions (i.e., size &lt; 3).</li>
+     * </ul>
+     * The method is synchronized on {@code transactionsPool} to prevent race conditions between concurrent threads.
      *
      * @param clientIn the input stream of the client
      * @param clientOut the output stream of the client
@@ -565,6 +565,21 @@ public class ClientHandler implements Runnable {
         return false;
     }
 
+    /**
+     * Validates whether a {@code PLACE_BID} transaction is acceptable based on current auction state and bid history.
+     * <p>
+     * The method performs several checks to determine if the given bid can be added to the blockchain:
+     * <ol>
+     *   <li>Checks if the bid is being placed on an active/available auction (based on the blockchain's current state).</li>
+     *   <li>Gathers all previous bids for the same auction from the blockchain.</li>
+     *   <li>Sorts existing bids in descending order by bid amount.</li>
+     *   <li>If no previous bids exist, the new bid is considered valid.</li>
+     *   <li>If previous bids exist, the new bid must be greater than the current highest bid to be valid.</li>
+     * </ol>
+     * </p>
+     * @param t the {@link Transaction} representing the bid to be validated
+     * @return {@code true} if the bid is valid (auction exists and the bid is higher than any existing bid); {@code false} otherwise
+     */
     private Boolean checkPlaceBid(Transaction t) {
         String auctionId = t.getAuctionId();
         Set<String> availableAuctions = blockchain.getAvailableAuctions();
