@@ -31,16 +31,17 @@ public class Client {
                 " 1 - Find Value" + '\n' +
                 " 2 - Ping" + '\n' +
                 " 3 - (Test) Store" + '\n' +
-                " 4 - Mine Block" + '\n' +
+                " 4 - Mine Block (a.k.a send to server's Blockchain)" + '\n' +
                 " 5 - Start Auction " + '\n' +
                 " 6 - Stop Auction" + '\n' +
                 " 7 - Place Bid" + '\n' +
                 " 8 - Search for available Auctions" + '\n' +
-                " 9 - Get Server info" + '\n' +
-                "10 - Get Server Transaction pool" + '\n' +
-                "11 - Get Server blockchain" + '\n' +
-                "12 - Get Server Kademlia Node " + '\n' +
-                "13 - Get Server Storage " + '\n' +
+                " 9 - Check made bid's" + '\n' +
+                "10 - Get Server info" + '\n' +
+                "11 - Get Server Transaction pool" + '\n' +
+                "12 - Get Server blockchain" + '\n' +
+                "13 - Get Server Kademlia Node " + '\n' +
+                "14 - Get Server Storage " + '\n' +
                 " exit - Exit" + '\n' +
                 "----------------------------------";
     }
@@ -98,19 +99,22 @@ public class Client {
                 case "8": // Search for available auctions (that are still active)
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_AVAILABLE_AUCTIONS",null));
                     break;
-                case "9": // Get Server info
+                case "9": // Check all bids made to a given auction
+                    checkBidsHandler(scanner);
+                    break;
+                case "10": // Get Server info
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_SERVER_INFO",null));
                     break;
-                case "10": // Get Server Transaction pool
+                case "11": // Get Server Transaction pool
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_TRANSACTION_POOL",null));
                     break;
-                case "11": // Get Server blockchain
+                case "12": // Get Server blockchain
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_BLOCKCHAIN",null));
                     break;
-                case "12": // Get Server Kademlia Node
+                case "13": // Get Server Kademlia Node
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_KADEMLIA_NODE",null));
                     break;
-                case "13": // Get <Key,Value> from kademlia Node
+                case "14": // Get <Key,Value> from kademlia Node
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_STORAGE",null));
                     break;
                 case "exit": // Exit
@@ -241,7 +245,20 @@ public class Client {
         System.out.println("Waiting for Response from Peer Server...");
         System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",placeBid));
 
+    }
 
+    private void checkBidsHandler(Scanner scanner) {
+        System.out.println("Insert the owner of auction you want to check Bids");
+        String auctionOwner = scanner.nextLine();
+        System.out.println("Insert the name for the auction you want to check Bids");
+        String auctionName = scanner.nextLine();
+
+        String auctionId = auctionOwner +  ":" + auctionName;
+
+        System.out.println(
+                PeerComunication.sendMessageToPeer(
+                        peerServerHost, peerServerPort,"GET_PLACED_BIDS",auctionId)
+        );
     }
 
 }

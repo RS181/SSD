@@ -93,6 +93,9 @@ public class ClientHandler implements Runnable {
                     case "GET_AVAILABLE_AUCTIONS":
                         getAvailableAuctions(out);
                         break;
+                    case "GET_PLACED_BIDS":
+                        getAvailableBids(in,out);
+                        break;
                     case "GET_TRANSACTION_POOL":
                         getTransactionPool(out);
                         break;
@@ -644,6 +647,24 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void getAvailableBids(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        synchronized (blockchain){
+            try{
+                clientOut.writeObject("OK");
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+                if (receivedObject instanceof String auctionId){
+                    clientOut.writeObject(blockchain.getAllBids(auctionId));
+                }else {
+                    clientOut.writeObject("Error: Expected String but received something else");
+                    logger.warning("Error: Did not receive a String (getAvailableBids)");
+                }
+            }catch (Exception e){
+                logger.severe("Error ocured (getAvailableBids)");
+            }
+        }
+    }
 
     /**
      *  Sends the transaction pool stored in the peer to the client.
