@@ -203,8 +203,6 @@ public class Blockchain implements Serializable {
             ArrayList<Transaction> transactionsInBlock = b.getTransactions();
             for (Transaction t : transactionsInBlock) {
                 String aucId = t.getAuctionId();
-
-                System.out.println("===>" + aucId.equals(auctionId));
                 if(aucId.equals(auctionId) && t.getType().equals(Transaction.TransactionType.PLACE_BID))
                     ans.add(t.getUsername() + ":" + t.getBidAmount() );
             }
