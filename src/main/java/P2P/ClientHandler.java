@@ -457,7 +457,8 @@ public class ClientHandler implements Runnable {
                 Object receivedObject = clientIn.readObject();
 
                 if (receivedObject instanceof Transaction t && checkTransaction(t,t.getType())) {
-                        if(!t.getType().equals(Transaction.TransactionType.PLACE_BID)) {
+                        if(!t.getType().equals(Transaction.TransactionType.PLACE_BID) &&
+                                !t.getType().equals(Transaction.TransactionType.CLOSE_AUCTION)) {
                             if (transactionsPool.size() < 3) {
                                 transactionsPool.add(t);
                                 clientOut.writeObject("OK");
@@ -469,7 +470,7 @@ public class ClientHandler implements Runnable {
                         }else {
                             if(transactionsPool.size() >= 1){
                                 clientOut.writeObject("Not Ok: Please commit your local transactions " +
-                                        "before placing a Bid" +
+                                        "before placing a Bid or Closing an auction" +
                                         "\n(Please send Mine block --> press 4))");
                             }
                             else {
@@ -499,6 +500,9 @@ public class ClientHandler implements Runnable {
                 // TODO: enviar vencedor (i.e. cliente com > transação PLACE_BID desse auction  )
                 System.out.println("Received STOP_AUCTION");
                 ans = checkStopAuction(t);
+                // if close auction check was sucessfull (anounce winner)
+                if (ans)
+                    anounceAuctionWinner(t.getAuctionId());
                 System.out.printf("Check STOP_AUCTION %s = %s\n",t.getAuctionId(),ans);
                 break;
             case PLACE_BID:
@@ -569,6 +573,31 @@ public class ClientHandler implements Runnable {
                 return true;
         }
         return false;
+    }
+
+    private void anounceAuctionWinner(String auctionId) {
+        Set<String> bids = blockchain.getAllBids(auctionId);
+        String highestBidder = null;
+        double highestBid = Double.NEGATIVE_INFINITY;
+        for (String bidEntry : bids) {
+            String[] parts = bidEntry.split(":");
+            if (parts.length != 2) continue; // ignore invalid entries
+
+            String username = parts[0];
+            double bidAmount;
+
+            try {
+                bidAmount = Double.parseDouble(parts[1]);
+            } catch (NumberFormatException e) {
+                continue; // ignore invalid entries
+            }
+
+            if (bidAmount > highestBid) {
+                highestBid = bidAmount;
+                highestBidder = username;
+            }
+        }
+        logger.info("Winner of auction [" + auctionId + "] is ===> " + highestBidder + " !!!!!!");
     }
 
     /**
