@@ -64,6 +64,8 @@ public class Transaction implements Serializable {
         return auctionId;
     }
 
+    public String getUsername() { return username; }
+
     public double getBidAmount() {
         return bidAmount;
     }
