@@ -75,6 +75,7 @@ public class Miner {
     public Block mineBlock(ArrayList<Transaction> tranctions, String previousBlockHash) {
         // Sort transactions by timestamp in ascending order
         tranctions.sort(Comparator.comparingLong(Transaction::getTimestamp));        this.minedBlock = new Block(tranctions,previousBlockHash);
+        System.out.println("Before Mining " + stopMining);
         minedBlock = proofOfWork(minedBlock,Constants.DIFFICULTY);
         if (stopMining) { // Check if miner 'received' stop signal (if so return null)
             stopMining = false; // reset
@@ -128,4 +129,5 @@ public class Miner {
     public void stopMining(){
         stopMining = true;
     }
+    public void canStartMining(){stopMining = false;}
 }

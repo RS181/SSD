@@ -352,6 +352,9 @@ public class ClientHandler implements Runnable {
                     clientOut.writeObject("Dont have enough trasanctions to mine a block");
                     clientOut.flush();
                 } else {
+                    // Reset miner (to garante that stopMining = false in the begining)
+                    miner.canStartMining();
+
                     logger.info("Received MINE message");
                     String prevhash = "";
                     if (blockchain.getLastBlock() != null)
