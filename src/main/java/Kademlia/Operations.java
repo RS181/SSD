@@ -236,7 +236,7 @@ public class Operations {
      * </p>
      *
      * @param senderNode The node initiating the STORE operation.
-     * @param key        The string key to be used for identifying the value (e.g., a block hash or unique identifier).
+     * @param key        The string key to be used for identifying the value (in this case the blockhash).
      * @param value      The value (a Block) to be stored in the network.
      *
      * @note This implementation follows a broadcast-style STORE. We assume that the {@code FIND_NODE}
