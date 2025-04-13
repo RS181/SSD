@@ -13,10 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -115,6 +112,7 @@ public class ClientHandler implements Runnable {
                         getServerInfo(out);
                         break;
                     case "STOP": // Stop Mining block
+                        System.out.println("GOING TO STOP server threads and Miner");
                         server.stopAllThreads();
                         server.miner.stopMining();
                         break;
@@ -347,7 +345,7 @@ public class ClientHandler implements Runnable {
         // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
-                if (transactionsPool.size() < 3) {
+                if (transactionsPool.size() < 1) {
                     clientOut.writeObject("Dont have enough trasanctions to mine a block");
                     clientOut.flush();
                 } else {
@@ -390,6 +388,9 @@ public class ClientHandler implements Runnable {
                 return;
             } catch (IOException e) {
                 logger.warning("Error ocured in I/O (mineHandler)");
+            } catch (NullPointerException e){
+                e.printStackTrace();
+                logger.warning("NullPointerException Error in mineHandler");
             }
         }
     }
@@ -449,31 +450,34 @@ public class ClientHandler implements Runnable {
 
                 Object receivedObject = clientIn.readObject();
 
-                if (receivedObject instanceof Transaction t) {
-
-                    if (checkTransaction(t,t.getType())) {
-                        transactionsPool.add(t);
-                        clientOut.writeObject("OK");
-                    }else{
-                        clientOut.writeObject("NOT OK: Invalid transaction");
-                    }
-
+                if (receivedObject instanceof Transaction t && checkTransaction(t,t.getType())) {
+                        if(!t.getType().equals(Transaction.TransactionType.PLACE_BID)) {
+                            if (transactionsPool.size() < 3) {
+                                transactionsPool.add(t);
+                                clientOut.writeObject("OK");
+                            } else {
+                                clientOut.writeObject("Not Ok: transanctionsPool has " +
+                                        "reached the limit of uncommmited transactions" +
+                                        "\n(Please send Mine block --> press 4))");
+                            }
+                        }else {
+                            if(transactionsPool.size() >= 1){
+                                clientOut.writeObject("Not Ok: Please commit your local transactions " +
+                                        "before placing a Bid" +
+                                        "\n(Please send Mine block --> press 4))");
+                            }
+                            else {
+                                transactionsPool.add(t);
+                                clientOut.writeObject("OK");
+                            }
+                        }
                 } else {
-                    clientOut.writeObject("Error: Only accept transactions");
-                    logger.warning("Error: Did not receive a transaction (addTransactionHandler)");
+                    clientOut.writeObject("NOT OK: Invalid transaction");
                 }
             } catch (Exception e) {
                 logger.severe("Error ocured (addTransactionHandler)");
+                e.printStackTrace();
             }
-        }
-        // Had to put this block here because mineHandler also
-        // syncronizes in transactionsPool
-        //TODO if trasanction is PLACE_BID, imediately send MINE (to avoid
-        // the problem of two user's having the same Bid)ME
-        if (transactionsPool.size() >= 3){
-            PeerComunication.sendMessageToPeer(
-                    server.host, server.port,"MINE",null
-            );
         }
     }
 
@@ -486,6 +490,7 @@ public class ClientHandler implements Runnable {
                 System.out.printf("Check START_AUCTION %s = %s\n",t.getAuctionId(),ans);
                 break;
             case CLOSE_AUCTION:
+                // TODO: enviar vencedor (i.e. cliente com > transação PLACE_BID desse auction  )
                 System.out.println("Received STOP_AUCTION");
                 ans = checkStopAuction(t);
                 System.out.printf("Check STOP_AUCTION %s = %s\n",t.getAuctionId(),ans);
@@ -494,11 +499,6 @@ public class ClientHandler implements Runnable {
                 System.out.println("Received PLACE_BID");
                 ans = checkPlaceBid(t);
                 System.out.printf("Check PLACE_BID %s = %s\n",t.getAuctionId(),ans);
-                // Todo temos de verificar várias coisas
-                // temos de ter cuidado para não ter o caso de termos
-                // 2 clientes a fazer bids com mesmo valor
-                // Sol. se for place Bid fazer logo o mining
-                // (para garantir que não temos estes casos)
                 break;
             default:
                 System.out.println("Error Unkown Transaction type");
@@ -568,7 +568,6 @@ public class ClientHandler implements Runnable {
     private Boolean checkPlaceBid(Transaction t) {
         String auctionId = t.getAuctionId();
         Set<String> availableAuctions = blockchain.getAvailableAuctions();
-
         //1. check if Place bid is made to an available auction (if not return false)
         Boolean auctionExists = false;
         for(String auction : availableAuctions){
@@ -591,10 +590,20 @@ public class ClientHandler implements Runnable {
             }
         }
 
-        // TODO verificar se Bid feita é maior que as anteriores
-        System.out.printf("Existing bids to %s = %s\n",auctionId,existingBids);
+        //3. Sort the bids in descending order of bid amount
+        List<Transaction> sortedBids = new ArrayList<>(existingBids);
+        sortedBids.sort(Comparator.comparingDouble(Transaction::getBidAmount).reversed());
 
-        return true;
+        //3.1 if there is no bids, the bid received is definitely the bigger one
+        if(sortedBids.size() == 0) return true;
+
+        //4. Check if current bid is bigger that first bid in sorted list
+        Double biggestExistingBid = sortedBids.get(0).getBidAmount();
+        if (t.getBidAmount() > biggestExistingBid)
+                return true;
+
+        //System.out.printf("Existing bids  to %s = %s\n",auctionId,sortedBids);
+        return false;
     }
 
     /**
