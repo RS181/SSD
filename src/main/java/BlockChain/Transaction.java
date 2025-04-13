@@ -44,7 +44,7 @@ public class Transaction implements Serializable {
         return "\n\tTransaction Details:\n" +
                 "\t\tOwner: " + owner + "\n" +
                 "\t\tUser that made transaction: " + username + "\n" +
-                "\t\tTransaction Id: " + transactionId + "\n" +
+                //"\t\tTransaction Id: " + transactionId + "\n" +
                 "\t\tAuction Id: " + auctionId + "\n" +
                 "\t\tTransaction type: " + type + "\n" +
                 "\t\tBid ammount:  " + bidAmount + "\n" +
