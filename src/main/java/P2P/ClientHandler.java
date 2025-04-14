@@ -362,23 +362,26 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Handles the mining process and responds to the client with the result.
-     * <p>
-     * If there are not enough transactions to mine a block, an error message is sent.
-     * Otherwise, a new block is mined and added to the blockchain. If the mining is
-     * successful, the transaction pool is cleared, and a "STOP" message is sent to
-     * all known neighbors to halt their mining processes.
-     * </p>
+     * Handles the mining process and sends the result back to the client.
      *
-     * <p>
-     * This method synchronizes on the {@code transactionsPool} to prevent race conditions
-     * between threads.
-     * </p>
+     * <p>If there are not enough transactions in the pool to mine a block, an error message
+     * is sent to the client. Otherwise, a new block is mined using the current transactions,
+     * added to the blockchain (if valid), and broadcast to the network.</p>
      *
-     * @param clientOut the output stream of the client
+     * <p>After successful mining:
+     * <ul>
+     *   <li>The transaction pool is cleared.</li>
+     *   <li>A "STOP" message is sent to all known neighbors to halt their mining processes.</li>
+     *   <li>An "ADD_MINED_BLOCK" message is sent so peers can update their blockchains.</li>
+     *   <li>A "STORE" operation is performed to replicate the block across the network.</li>
+     * </ul>
+     *
+     * <p>This method synchronizes on the {@code transactionsPool} to prevent race conditions
+     * in multi-threaded environments.</p>
+     *
+     * @param clientOut the output stream used to communicate with the client
      */
     private void mineHandler(ObjectOutputStream clientOut) {
-        // Syncronize on transation pool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
                 if (transactionsPool.size() < 1) {
@@ -394,9 +397,9 @@ public class ClientHandler implements Runnable {
                         prevhash = blockchain.getLastBlock().getBlockHash();
 
                     logger.info("Started Mining Block ...");
-                    // Mine block and try to add to blockchain
                     Block b = miner.mineBlock(new ArrayList<>(transactionsPool), prevhash);
                     logger.info("Finished Mining Block !!!");
+
                     // Check if client's socket is still open
                     if (!client.isClosed()) {
                         System.out.println("Client Socket is open");
@@ -419,6 +422,12 @@ public class ClientHandler implements Runnable {
                             // send ADD_MINED_BLOCK message to add block to Neighbours blockchain
                             PeerComunication.sendMessageToPeer(n.getIpAddr(),n.getPort(),"ADD_MINED_BLOCK",b);
                         }
+
+                        // Make a STORE operation (so that we broadcast the block to
+                        // sender's k the closest nodes, and each one saves them in local storage)
+                        Node sender = new Node(server.host,server.port,false);
+                        Operations.store(sender,b.getBlockHash(),b);
+
                     } else
                         System.out.println("Client Socket is closed");
                 }
