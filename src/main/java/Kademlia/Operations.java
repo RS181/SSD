@@ -96,7 +96,7 @@ public class Operations {
                     break;
                 i++;
                 // Update the Sender's node routing table and list of neighbours
-                updatePeer(senderNode, closestNodesToTarget);
+                updatePeerRoutingInfo(senderNode, closestNodesToTarget);
                 System.out.println("================================");
             }else {
                 System.out.println("ERRO: findNode");
@@ -129,7 +129,14 @@ public class Operations {
         System.out.println("=====JOIN NETWORK Iteration [0]=====");
         List<Node> kClosestNodes = (List<Node>) PeerComunication.sendMessageToPeer(
                         bootstrap.getIpAddr(), bootstrap.getPort(), "FIND_NODE", joiningNode.getNodeId());
-        updatePeer(joiningNode,kClosestNodes);
+        updatePeerRoutingInfo(joiningNode,kClosestNodes);
+
+        // 2. update joining nodes local storage with local storage of k closest nodes
+        Map<String,Block> bootstrapStorage =
+                (Map<String, Block>) PeerComunication.sendMessageToPeer(
+                  bootstrap.getIpAddr(),bootstrap.getPort(),"GET_STORAGE",null
+                );
+        updatePeerStorageInfo(joiningNode,bootstrapStorage);
 
         PeerComunication.sendMessageToPeer(
                 bootstrap.getIpAddr(),bootstrap.getPort(),"ADD_PEER",joiningNode);
@@ -138,7 +145,7 @@ public class Operations {
 
         System.out.println("=====JOIN NETWORK Iteration [1]=====");
         for( Node n : kClosestNodes)
-            updatePeer(n,new ArrayList<>(Arrays.asList(joiningNode)));
+            updatePeerRoutingInfo(n,new ArrayList<>(Arrays.asList(joiningNode)));
         System.out.println("====================================");
     }
 
@@ -215,7 +222,7 @@ public class Operations {
                     return null;
                 }
 
-                updatePeer(senderNode, new ArrayList<>(discoveredNodes));
+                updatePeerRoutingInfo(senderNode, new ArrayList<>(discoveredNodes));
                 System.out.println("==================================");
                 i++;
             } else {
@@ -266,19 +273,39 @@ public class Operations {
 
     /**
      * Updates the routing table and list of known Neighbours of a certain Peer
-     * @param senderNode Node that we are going to send a list of Nodes to update
-     *                   its routing table and list of known Neighbours
+     *
+     * @param targetNode           Node that we are going to send a list of Nodes to update
+     *                             its routing table and list of known Neighbours
      * @param closestNodesToTarget list of Nodes we are going to send
      */
-    private static void updatePeer(Node senderNode, List<Node> closestNodesToTarget) {
+    private static void updatePeerRoutingInfo(Node targetNode, List<Node> closestNodesToTarget) {
         for (Node n : closestNodesToTarget){
             System.out.println(
                     PeerComunication.sendMessageToPeer(
-                            senderNode.getIpAddr(),senderNode.getPort(),"ADD_PEER",n
+                            targetNode.getIpAddr(), targetNode.getPort(),"ADD_PEER",n
                     )
             );
         }
     }
+
+    /**
+     * Updates the local Storage of a certain Peer
+     *
+     * @param targetNode Node that we are going to send a Block's to update
+     *                   local storage
+     * @param storage    Storage tha contains all the block we are going to send targetNode
+     */
+    private  static void updatePeerStorageInfo(Node targetNode, Map<String, Block> storage){
+        for (Block b : storage.values()){
+            System.out.println(
+                    PeerComunication.sendMessageToPeer(
+                            targetNode.getIpAddr(), targetNode.getPort(), "ADD_TO_STORAGE",b
+                    )
+            );
+        }
+    }
+
+
 
     /**
      * Generates a key ID based on a certain key.
@@ -291,7 +318,7 @@ public class Operations {
      * @param key Strin that corresponds to a key
      * @return The generated Key ID as an 8-bit binary string.
      */
-    private static String generateKeyId(String key) {
+    public static String generateKeyId(String key) {
         String input = CryptoUtils.getHash1(key);
         byte[] bytes = input.getBytes();
         int first8Bits = bytes[0] & 0xFF; // Positive 8-bit value

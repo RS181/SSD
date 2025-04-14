@@ -85,6 +85,13 @@ public class Node implements Serializable {
     }
 
     /**
+     * Adds a block to local Storage
+     * @param key
+     * @param b
+     */
+    public void addToLocalStorage(String key, Block b){localStorage.put(key,b);}
+
+    /**
      * Stores a key-value pair in the node's local storage if the key does not already exist.
      *
      * @param key   The key, which corresponds to a key id, used to identify the value.

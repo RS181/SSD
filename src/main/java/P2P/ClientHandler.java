@@ -7,6 +7,7 @@ import BlockChain.Transaction;
 import Kademlia.BlockKeyWrapper;
 import Kademlia.Constants;
 import Kademlia.Node;
+import Kademlia.Operations;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -77,6 +78,9 @@ public class ClientHandler implements Runnable {
                     case "ADD_PEER":
                         addPeerHandler(in,out);
                         break;
+                    case "ADD_TO_STORAGE":
+                        addToStorageHandler(in,out);
+                        break;
 
                     // Blockchain/App related methods
                     case "MINE":
@@ -143,6 +147,35 @@ public class ClientHandler implements Runnable {
             logger.warning("Caught IOException or ClassNotFoundException in ClientHandler (run)");
             //e.printStackTrace();
         }
+    }
+
+    private void addToStorageHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        logger.info("Received Add to 'kademlia' node's Storage");
+        try {
+
+            synchronized (kademliaNode) {
+                clientOut.writeObject("OK from @ " + server.host + " " + server.port);
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+                
+                if (receivedObject instanceof Block b ){
+                    logger.info("Received Block to add to 'kademlia' node's Storage = [" + b.getBlockHash() + "]");
+                    String keyId = Operations.generateKeyId(b.getBlockHash());
+
+                    kademliaNode.addToLocalStorage(keyId,b);
+                    clientOut.writeObject("Updated Kademlia Node storage \n:" + kademliaNode.getLocalStorage());
+                }else {
+                    clientOut.writeObject("Error: Expected Block but received something else");
+                    logger.warning("Error: Did not receive a Block (addToStorageHandler)");
+
+                }
+            }
+        }catch (Exception e){
+            logger.severe("Error ocured (addToStorageHandler)");
+
+        }
+    
     }
 
     /**
