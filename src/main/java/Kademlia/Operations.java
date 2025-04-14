@@ -109,21 +109,25 @@ public class Operations {
     /**
      * Allows a node {@code joiningNode} to join a Kademlia network using a known {@code bootstrap} node.
      *
-     * <p>The process involves three main steps:
+     * <p>The joining process involves three main steps:
      * <ol>
      *   <li>Query the bootstrap node to retrieve the {@code k} closest nodes to {@code joiningNode},
-     *       and update {@code joiningNode}'s routing table with them.
-     *   <li>Add {@code joiningNode} to the bootstrap node's routing table.
-     *   <li>Broadcast the presence of {@code joiningNode} to all the nodes returned by the bootstrap,
-     *       so they can also update their routing tables to include the new node.
+     *       and update the {@code joiningNode}'s routing table with those nodes.</li>
+     *   <li>Add {@code joiningNode} to the bootstrap node's routing table.</li>
+     *   <li>Notify all nodes returned by the bootstrap node of the new {@code joiningNode},
+     *       allowing them to update their routing tables accordingly.</li>
      * </ol>
+     * </p>
      *
+     * <p>Additionally, the {@code joiningNode} retrieves the local storage from the bootstrap node
+     * to initialize its own storage.
+     * </p>
      *
      * @param joiningNode the node that wants to join the network
-     * @param bootstrap the bootstrap node already part of the network
+     * @param bootstrap the bootstrap node already present in the network
      *
-     * @note The value of {@code k} must be large enough to ensure that all peers known
-     *       by the bootstrap node are included. This guarantees that the new node is properly advertised.
+     * @implNote The value of {@code k} (the number of closest nodes to retrieve) should be sufficiently large
+     *           to ensure the joining node is properly advertised to all relevant peers.
      */
     public static void joinNetwork(Node joiningNode, Node bootstrap){
         System.out.println("=====JOIN NETWORK Iteration [0]=====");
