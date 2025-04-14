@@ -179,15 +179,16 @@ public class Client {
 
     // NOTA: este método é só para realizar testes sobre operação STORE do kademlia
     private void clientStoreHandler(Scanner scanner) {
-        System.out.println("Insert the key value: ");
-        String key = scanner.nextLine();
-
+        System.out.println("Insert the name of action");
+        String auctionName = scanner.nextLine();
         ArrayList<Transaction> startAuction = new ArrayList<>();
-        startAuction.add(new Transaction("user1","user1", Transaction.TransactionType.START_AUCTION, "AUC123", 0, System.currentTimeMillis()));
+        startAuction.add(new Transaction("user1","user1", Transaction.TransactionType.START_AUCTION,
+                auctionName, 0, System.currentTimeMillis()));
         // No need to mine, because we are just using this for test purposes
         Block value = new Block(startAuction,"");
+        String key = value.getBlockHash();
         Node sender = new Node(peerServerHost,peerServerPort,false);
-
+        System.out.println("The key values is : " + key);
         Operations.store(sender,key,value);
     }
 
