@@ -1,8 +1,10 @@
 package Kademlia;
 
 import BlockChain.Block;
+import BlockChain.Miner;
 import Cryptography.CryptoUtils;
 import P2P.PeerComunication;
+import P2P.Server;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -31,10 +33,16 @@ public class Operations {
      * @param targetNode the node being pinged
      * @return {@code true} if a response is received (node is alive), {@code false} otherwise
      */
-    public static boolean ping(Node senderNode,Node targetNode){
+    public static boolean ping(Node senderNode,Node targetNode,Miner miner){
         String targetHost = targetNode.getIpAddr();
         int targerPort = targetNode.getPort();
-        String response = (String) PeerComunication.sendMessageToPeer(targetHost,targerPort,"PING",senderNode);
+        SecureMessage secureMessage =
+                new SecureMessage("PING",senderNode,miner.getPublicKey(),miner.getPrivateKey());
+
+        //String response =
+        //        (String) PeerComunication.sendMessageToPeer(targetHost,targerPort,"PING",senderNode);
+        String response =
+                (String) PeerComunication.sendMessageToPeer(targetHost,targerPort,"PING",secureMessage);
         if (response != null)
             return true;
         return false;
@@ -71,22 +79,34 @@ public class Operations {
                     PeerComunication.sendMessageToPeer(
                             senderNode.getIpAddr(),senderNode.getPort(),
                             "GET_ROUTING_TABLE",null)
-                    instanceof RoutingTable senderRoutingTable
+                    instanceof SecureMessage routingSecureMessage
+                            && routingSecureMessage.verifySignature()
+                            && routingSecureMessage.getPayload() instanceof  RoutingTable senderRoutingTable
                 )
             {
                 System.out.println("=====FIND_NODE Iteration [" + i + "]=====");
-                List<Node> senderClosestNodes = senderRoutingTable.getClosestNodes(Constants.MAX_ROUTING_FIND_NODES, targetNodeId);
+                List<Node> senderClosestNodes =
+                        senderRoutingTable.getClosestNodes(Constants.MAX_ROUTING_FIND_NODES, targetNodeId);
                 newNodes = 0;
 
                 // Get the closes k Nodes to our target Id
                 for (Node n : senderClosestNodes) {
-                    List<Node> kClosestNodes =
-                            (List<Node>) PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "FIND_NODE", targetNodeId);
-                    for (Node closestNode : kClosestNodes) {
-                        if (!closestNodesToTarget.contains(closestNode)) {
-                            closestNodesToTarget.add(closestNode);
-                            newNodes++;
+
+                    if (PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "FIND_NODE", targetNodeId)
+                            instanceof SecureMessage findSecureMessage &&
+                            findSecureMessage.verifySignature()
+                    )
+                    {
+                        List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
+                        for (Node closestNode : kClosestNodes) {
+                            if (!closestNodesToTarget.contains(closestNode)) {
+                              closestNodesToTarget.add(closestNode);
+                               newNodes++;
+                            }
                         }
+                    } else {
+                        System.out.println("Error ocurred in findNode (could be because" +
+                                "of message signature or comunication error) ");
                     }
                 }
                 System.out.println("Closest Nodes to [" + targetNodeId + "] =" + senderClosestNodes);
@@ -99,7 +119,7 @@ public class Operations {
                 updatePeerRoutingInfo(senderNode, closestNodesToTarget);
                 System.out.println("================================");
             }else {
-                System.out.println("ERRO: findNode");
+                System.out.println("ERROR: findNode");
                 return;
             }
         }
@@ -131,26 +151,41 @@ public class Operations {
      */
     public static void joinNetwork(Node joiningNode, Node bootstrap){
         System.out.println("=====JOIN NETWORK Iteration [0]=====");
-        List<Node> kClosestNodes = (List<Node>) PeerComunication.sendMessageToPeer(
-                        bootstrap.getIpAddr(), bootstrap.getPort(), "FIND_NODE", joiningNode.getNodeId());
-        updatePeerRoutingInfo(joiningNode,kClosestNodes);
+        if (PeerComunication.sendMessageToPeer(bootstrap.getIpAddr(), bootstrap.getPort(), "FIND_NODE", joiningNode.getNodeId())
+                instanceof SecureMessage findSecureMessage &&
+                findSecureMessage.verifySignature()
+        ) {
 
-        // 2. update joining nodes local storage with local storage of k closest nodes
-        Map<String,Block> bootstrapStorage =
-                (Map<String, Block>) PeerComunication.sendMessageToPeer(
-                  bootstrap.getIpAddr(),bootstrap.getPort(),"GET_STORAGE",null
-                );
-        updatePeerStorageInfo(joiningNode,bootstrapStorage);
+            List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
+            updatePeerRoutingInfo(joiningNode, kClosestNodes);
 
-        PeerComunication.sendMessageToPeer(
-                bootstrap.getIpAddr(),bootstrap.getPort(),"ADD_PEER",joiningNode);
-        System.out.println("Closest Nodes to [" +joiningNode +"] =" + kClosestNodes);
-        System.out.println("====================================");
+            if (PeerComunication.sendMessageToPeer(
+                    bootstrap.getIpAddr(), bootstrap.getPort(), "GET_STORAGE", null)
+            instanceof SecureMessage storageSecureMessage && storageSecureMessage.verifySignature()) {
 
-        System.out.println("=====JOIN NETWORK Iteration [1]=====");
-        for( Node n : kClosestNodes)
-            updatePeerRoutingInfo(n,new ArrayList<>(Arrays.asList(joiningNode)));
-        System.out.println("====================================");
+                // 2. update joining nodes local storage with local storage of k closest nodes
+                Map<String, Block> bootstrapStorage = (Map<String, Block>) storageSecureMessage.getPayload();
+
+                updatePeerStorageInfo(joiningNode, bootstrapStorage);
+
+                PeerComunication.sendMessageToPeer(
+                        bootstrap.getIpAddr(), bootstrap.getPort(), "ADD_PEER", joiningNode);
+                System.out.println("Closest Nodes to [" + joiningNode + "] =" + kClosestNodes);
+                System.out.println("====================================");
+
+                System.out.println("=====JOIN NETWORK Iteration [1]=====");
+                for (Node n : kClosestNodes)
+                    updatePeerRoutingInfo(n, new ArrayList<>(Arrays.asList(joiningNode)));
+                System.out.println("====================================");
+            }
+            else {
+                System.out.println("[GET_STORAGE] Error ocurred in joinNetwork (could be because" +
+                        "of message signature or comunication error) ");
+            }
+        }else{
+            System.out.println("[FIND_NODE] Error ocurred in joinNetwork (could be because" +
+                    "of message signature or comunication error) ");
+        }
     }
 
     /**
@@ -177,7 +212,7 @@ public class Operations {
      * @param key        The key associated with the value being searched.
      * @return The {@link Block} value if found, or {@code null} if not found in the network.
      */
-    public static Block findValue(Node senderNode, String key) {
+    public static Block findValue(Node senderNode, String key,Miner miner) {
         String keyId = generateKeyId(key);
         Set<Node> queriedNodes = new HashSet<>();
         Set<Node> discoveredNodes = new HashSet<>();
@@ -187,7 +222,9 @@ public class Operations {
             if (
                     PeerComunication.sendMessageToPeer(
                             senderNode.getIpAddr(), senderNode.getPort(), "GET_ROUTING_TABLE", null
-                    ) instanceof RoutingTable senderRoutingTable
+                    ) instanceof SecureMessage routingSecureMessage
+                    && routingSecureMessage.verifySignature()
+                    && routingSecureMessage.getPayload() instanceof RoutingTable senderRoutingTable
             ) {
                 System.out.println("===== FIND_VALUE Iteration [" + i + "] =====");
 
@@ -201,20 +238,31 @@ public class Operations {
                         Object response = PeerComunication.sendMessageToPeer(node.getIpAddr(), node.getPort(),
                                 "FIND_VALUE", keyId);
 
-                        if (response instanceof Block foundValue && foundValue != null) {
-                            System.out.printf("Value found in [%s,%s,%s]\n"
-                                    , node.getNodeId(), node.getIpAddr(), node.getPort());
-                            // Tries to add to sender local storage
-                            Operations.store(senderNode,key,foundValue);
-                            System.out.println("==================================");
-                            return foundValue;
-                        } else if (response instanceof List<?> returnedNodes) {
-                            for (Object obj : returnedNodes) {
-                                if (obj instanceof Node n && !discoveredNodes.contains(n)) {
-                                    discoveredNodes.add(n);
-                                    newNodes++;
+
+                        if (response instanceof SecureMessage secureMessage &&
+                                secureMessage.verifySignature())
+                        {
+                            if(secureMessage.getPayload() instanceof Block foundValue &&
+                                    foundValue != null) {
+                                System.out.printf("Value found in [%s,%s,%s]\n"
+                                        , node.getNodeId(), node.getIpAddr(), node.getPort());
+                                // Tries to add to sender local storage
+                                Operations.store(senderNode, key, foundValue,miner);
+
+
+                                System.out.println("==================================");
+                                return foundValue;
+                            }else if (secureMessage.getPayload() instanceof List<?> returnedNodes) {
+                                for (Object obj : returnedNodes) {
+                                    if (obj instanceof Node n && !discoveredNodes.contains(n)) {
+                                        discoveredNodes.add(n);
+                                        newNodes++;
+                                    }
                                 }
                             }
+                        } else {
+                            System.out.println("Error ocurred in findValue (could be because" +
+                                    "of message signature or comunication error) ");
                         }
                     }
                 }
@@ -230,7 +278,7 @@ public class Operations {
                 System.out.println("==================================");
                 i++;
             } else {
-                System.out.println("Error ao obter routing table.");
+                System.out.println("Error while trying to obtain Secure message.");
                 break;
             }
         }
@@ -255,22 +303,43 @@ public class Operations {
      *       actually correspond to all active Kademlia nodes). This guarantees that the value is propagated
      *       across the entire network.
      */
-    public static void store (Node senderNode,String key, Block value){
+    public static void store (Node senderNode, String key, Block value, Miner miner){
         String keyId =  generateKeyId(key);
         System.out.println("Key Id = " + keyId);
 
         // Get the k closest Nodes  to keyId (from sender Node)
-        List<Node> kClosestNodes = (List<Node>) PeerComunication.sendMessageToPeer(
-                senderNode.getIpAddr(), senderNode.getPort(), "FIND_NODE",keyId);
 
-        // Wraps the Key and Block in a  wrapper class (a.k.a. BlockKeyWrapper)
-        BlockKeyWrapper blockKeyWrapper = new BlockKeyWrapper(keyId,value);
+        if (
+                PeerComunication.sendMessageToPeer(
+                        senderNode.getIpAddr(), senderNode.getPort(),
+                        "FIND_NODE",keyId
+                ) instanceof  SecureMessage findSecureMessage &&
+                findSecureMessage.verifySignature()
+        ){
+            List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
 
-        // Store the <Key,Value> pair in those KClosestNodes
-        for (Node n : kClosestNodes){
-            PeerComunication.sendMessageToPeer(
-                    n.getIpAddr(),n.getPort(),"STORE",blockKeyWrapper
-            );
+
+
+            // Wraps the Key and Block in a  wrapper class (a.k.a. BlockKeyWrapper)
+            BlockKeyWrapper blockKeyWrapper = new BlockKeyWrapper(keyId,value);
+
+            // Store the <Key,Value> pair in those KClosestNodes
+            for (Node n : kClosestNodes){
+                SecureMessage storeSecureMessage =
+                        new SecureMessage("STORE",blockKeyWrapper,
+                                miner.getPublicKey(),miner.getPrivateKey());
+
+                //PeerComunication.sendMessageToPeer(
+                //        n.getIpAddr(),n.getPort(),"STORE",blockKeyWrapper
+                //);
+                PeerComunication.sendMessageToPeer(
+                        n.getIpAddr(),n.getPort(),"STORE",storeSecureMessage
+                );
+            }
+
+        }else {
+            System.out.println("Error ocurred in STORE (could be because" +
+                    "of message signature or comunication error) ");
         }
 
     }

@@ -2,6 +2,7 @@ package BlockChain;
 
 import Cryptography.CryptoUtils;
 
+import java.io.Serializable;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +12,7 @@ import java.util.Comparator;
  * This class represents some node trying to mine a block and add it to the Blockchain
  *
  */
-public class Miner {
+public class Miner implements Serializable {
     private Block minedBlock;
     private PrivateKey privateKey;
     public  PublicKey publicKey;

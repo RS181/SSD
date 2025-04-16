@@ -4,10 +4,7 @@ import BlockChain.Block;
 import BlockChain.Blockchain;
 import BlockChain.Miner;
 import BlockChain.Transaction;
-import Kademlia.BlockKeyWrapper;
-import Kademlia.Constants;
-import Kademlia.Node;
-import Kademlia.Operations;
+import Kademlia.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -115,6 +112,8 @@ public class ClientHandler implements Runnable {
                     case "GET_ROUTING_TABLE":
                         getRoutingTable(out);
                         break;
+                    case "GET_SERVER_OBJECT":
+                        getServerObject(out);
                     case "GET_SERVER_INFO":
                         getServerInfo(out);
                         break;
@@ -197,7 +196,13 @@ public class ClientHandler implements Runnable {
                     logger.info("Receive FIND_NODE(" + targetNodeId + ")");
                     List<Node> kClosestNodes =
                             kademliaNode.getRoutingTable().getClosestNodes(Constants.MAX_RETURN_FIND_NODES,targetNodeId);
-                    clientOut.writeObject(kClosestNodes);
+
+                    SecureMessage secureMessage = new SecureMessage("FIND_NODE",kClosestNodes
+                            ,miner.getPublicKey(),miner.getPrivateKey());
+
+                    //clientOut.writeObject(kClosestNodes);
+                    clientOut.writeObject(secureMessage);
+
                 }else {
                     clientOut.writeObject("Error: Expected Node Id but received something else");
                     logger.warning("Error: Did not receive a Node Id (findNodeHandler)");
@@ -222,14 +227,22 @@ public class ClientHandler implements Runnable {
                     Block b = kademliaNode.getValue(keyId);
                     if (b != null){
                         logger.info("Value found in local storage");
-                        clientOut.writeObject(b);
+                        SecureMessage secureMessage =
+                                new SecureMessage("FIND_VALUE",b,
+                                        miner.getPublicKey(),miner.getPrivateKey());
+                        clientOut.writeObject(secureMessage);
+                        //clientOut.writeObject(b);
                     }
                     else {
                         logger.warning("Value not found in local storage");
                         List<Node>  closestNodestoKey =
                             kademliaNode.getRoutingTable().getClosestNodes
                                     (Constants.MAX_ROUTING_FIND_NODES,keyId);
-                        clientOut.writeObject(closestNodestoKey);
+                        SecureMessage secureMessage =
+                                new SecureMessage("FIND_VALUE",closestNodestoKey,
+                                        miner.getPublicKey(),miner.getPrivateKey());
+                        clientOut.writeObject(secureMessage);
+                        //clientOut.writeObject(closestNodestoKey);
                     }
                 }else{
                     clientOut.writeObject("Error: Expected String but received something else");
@@ -254,12 +267,16 @@ public class ClientHandler implements Runnable {
 
             Object receivedObject = clientIn.readObject();
 
-            if (receivedObject instanceof  Node n){
+
+            if (receivedObject instanceof  SecureMessage secureMessage &&
+                    secureMessage.verifySignature() &&
+                    secureMessage.getPayload() instanceof Node n
+            ){
                 logger.info("Received Ping from " + n);
                 clientOut.writeObject("OK");
             }else {
-                clientOut.writeObject("Error: Expected Node but received something else");
-                logger.warning("Error: Did not receive a Node (pingHandler)");
+                clientOut.writeObject("Error: Expected SecureMessage but received something else");
+                logger.warning("Error: Did not receive a SecureMessage or signature is invalid (pingHandler)");
             }
         }catch (Exception e){
             logger.severe("Error ocured (pingHandler)");
@@ -276,14 +293,17 @@ public class ClientHandler implements Runnable {
 
                 Object receivedObject = clientIn.readObject();
 
-                if (receivedObject instanceof BlockKeyWrapper blockKeyWrapper){
+                if (receivedObject instanceof SecureMessage secureMessage
+                        && secureMessage.verifySignature()
+                        && secureMessage.getPayload() instanceof BlockKeyWrapper blockKeyWrapper){
                     logger.info("Received Key/Block to Store");
+
                     kademliaNode.storeKeyValuePair(
                             blockKeyWrapper.getKeyId(),blockKeyWrapper.getBlock()
                     );
                     clientOut.writeObject("Store complete");
                 }else{
-                    clientOut.writeObject("Error: Expected BlockKeyWrapper but received something else");
+                    clientOut.writeObject("Error: could be caused by bad signature or other comunication error (storeHandler)");
                     logger.warning("Error: Did not receive a BlockKeyWrapper (storeHandler)");
                 }
 
@@ -426,7 +446,7 @@ public class ClientHandler implements Runnable {
                         // Make a STORE operation (so that we broadcast the block to
                         // sender's k the closest nodes, and each one saves them in local storage)
                         Node sender = new Node(server.host,server.port,false);
-                        Operations.store(sender,b.getBlockHash(),b);
+                        Operations.store(sender,b.getBlockHash(),b,miner);
 
                     } else
                         System.out.println("Client Socket is closed");
@@ -811,7 +831,11 @@ public class ClientHandler implements Runnable {
     private void getStorage(ObjectOutputStream clientOut) {
         synchronized (kademliaNode) {
             try {
-                clientOut.writeObject(kademliaNode.getLocalStorage());
+                SecureMessage secureMessage =
+                        new SecureMessage("GET_STORAGE",kademliaNode.getLocalStorage(),
+                                miner.getPublicKey(),miner.getPrivateKey());
+                //clientOut.writeObject(kademliaNode.getLocalStorage());
+                clientOut.writeObject(secureMessage);
                 clientOut.flush();
             } catch (Exception e) {
                 logger.severe("Error ocured (getStorage)");
@@ -844,11 +868,28 @@ public class ClientHandler implements Runnable {
         // Syncronize on kademliaNode to avoid race conditions between threads
         synchronized (kademliaNode){
             try {
-                clientOut.writeObject(kademliaNode.getRoutingTable());
+                SecureMessage secureMessage =
+                        new SecureMessage("GET_ROUTING_TABLE",kademliaNode.getRoutingTable(),
+                                miner.getPublicKey(), miner.getPrivateKey());
+                //clientOut.writeObject(kademliaNode.getRoutingTable());
+                clientOut.writeObject(secureMessage);
                 clientOut.flush();
             }catch (Exception e){
                 logger.severe("Error ocured (getRoutingTable)");
             }
         }
+    }
+    private void getServerObject(ObjectOutputStream clientOut) {
+        try{
+            logger.info("Received GET_SERVER_OBJECT");
+            SecureMessage secureMessage =
+                    new SecureMessage("GET_SERVER_OBJECT",miner,miner.getPublicKey(),miner.getPrivateKey());
+            clientOut.writeObject(secureMessage);
+            clientOut.flush();
+        } catch (Exception e){
+            logger.severe("Error ocured (getServerObject)");
+            e.printStackTrace();
+        }
+
     }
 }

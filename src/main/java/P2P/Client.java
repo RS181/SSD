@@ -1,12 +1,15 @@
 package P2P;
 
 import BlockChain.Block;
+import BlockChain.Miner;
 import BlockChain.Transaction;
 import Kademlia.Node;
 import Kademlia.Operations;
+import Kademlia.SecureMessage;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -42,6 +45,7 @@ public class Client {
                 "12 - Get Server blockchain" + '\n' +
                 "13 - Get Server Kademlia Node " + '\n' +
                 "14 - Get Server Storage " + '\n' +
+                "15 - (TEST) GET_ROUTING_TABLE " + '\n' +
                 " exit - Exit" + '\n' +
                 "----------------------------------";
     }
@@ -115,7 +119,24 @@ public class Client {
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_KADEMLIA_NODE",null));
                     break;
                 case "14": // Get <Key,Value> from kademlia Node
-                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_STORAGE",null));
+                    if (
+                            PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_STORAGE",null)
+                                    instanceof  SecureMessage secureMessage &&
+                                    secureMessage.verifySignature()
+                    )
+                    System.out.println(secureMessage.getPayload());
+                    else
+                        System.out.println("Peer Storage is invalid");
+                    break;
+                    // TODO REMOVER OS PONTOS QUE ESTÃO ABAIXO (SÓ PARA TESTE)
+                case "15":
+                    if (PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort,"GET_ROUTING_TABLE",null) instanceof SecureMessage m){
+                        System.out.println(m.getPayload());
+                        System.out.println(m.verifySignature());
+                        m.setPayload("dummy");
+                        System.out.println(m.verifySignature());
+                    }
+
                     break;
                 case "exit": // Exit
                     end = true;
@@ -154,8 +175,19 @@ public class Client {
         String key = scanner.nextLine();
         Node sender = new Node(peerServerHost,peerServerPort,false);
 
-        Block value = Operations.findValue(sender,key);
-        System.out.printf("Result of FIND_VALUE(%s) = %s\n",key,value);
+        if (
+                PeerComunication.sendMessageToPeer
+                        (peerServerHost,peerServerPort,"GET_SERVER_OBJECT",null)
+                instanceof SecureMessage serverSecureMessage && serverSecureMessage.verifySignature()
+                && serverSecureMessage.getPayload() instanceof Miner miner
+        ) {
+            Block value = Operations.findValue(sender, key,miner);
+            System.out.printf("Result of FIND_VALUE(%s) = %s\n", key, value);
+        }
+        else {
+            System.out.println("Error ocured in client (could be signature error or " +
+                    "comunication error");
+        }
     }
 
     private void pingHandler(Scanner scanner) {
@@ -163,22 +195,39 @@ public class Client {
         String ipAddr = scanner.nextLine();
         System.out.println("Insert the Port of Kademlia Node you want to PING");
         int port = scanner.nextInt();
+        scanner.nextLine();
 
         System.out.println(peerServerHost + " " + peerServerPort + " --[PING]--> " + ipAddr + " " + port);
         Node sender = new Node(peerServerHost,peerServerPort,false);
         Node target = new Node(ipAddr,port,false);
 
-        Boolean pingWasSucessful = Operations.ping(sender,target);
-        if(pingWasSucessful)
-            System.out.println(ipAddr + " " + port + " is ON-LINE");
-        else {
-            // TODO enviar o REMOVE PEER para todos os nós conhecidos por PEER
-            System.out.println(ipAddr + " " + port + " is OFF-LINE");
+        if (
+                PeerComunication.sendMessageToPeer
+                        (peerServerHost,peerServerPort,"GET_SERVER_OBJECT",null)
+                        instanceof SecureMessage serverSecureMessage && serverSecureMessage.verifySignature()
+                        && serverSecureMessage.getPayload() instanceof Miner miner
+        ) {
+            Boolean pingWasSucessful = Operations.ping(sender,target,miner);
+            if(pingWasSucessful)
+                System.out.println(ipAddr + " " + port + " is ON-LINE");
+            else {
+                // TODO enviar o REMOVE PEER para todos os nós conhecidos por PEER
+                System.out.println(ipAddr + " " + port + " is OFF-LINE");
+            }
         }
+        else {
+            System.out.println("Error ocured in client (could be signature error or " +
+                    "comunication error");
+        }
+
+
     }
 
     // NOTA: este método é só para realizar testes sobre operação STORE do kademlia
     private void clientStoreHandler(Scanner scanner) {
+        // TODO : remover este métoodo
+        System.out.println("(Deprecated) This option is no longer available");
+        /*
         System.out.println("Insert the name of action");
         String auctionName = scanner.nextLine();
         ArrayList<Transaction> startAuction = new ArrayList<>();
@@ -190,6 +239,7 @@ public class Client {
         Node sender = new Node(peerServerHost,peerServerPort,false);
         System.out.println("The key values is : " + key);
         Operations.store(sender,key,value);
+         */
     }
 
 

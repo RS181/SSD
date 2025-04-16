@@ -42,5 +42,5 @@ public class Constants {
      * the Node id inte binary format, e.g. "10100001" is
      * an 8 bit Node ID)
      */
-    public static final int NUMBER_OF_BITS_NODE_ID = 16;
+    public static final int NUMBER_OF_BITS_NODE_ID = 8;
 }
