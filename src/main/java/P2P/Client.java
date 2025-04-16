@@ -177,7 +177,7 @@ public class Client {
 
         if (
                 PeerComunication.sendMessageToPeer
-                        (peerServerHost,peerServerPort,"GET_SERVER_OBJECT",null)
+                        (peerServerHost,peerServerPort,"GET_MINER",null)
                 instanceof SecureMessage serverSecureMessage && serverSecureMessage.verifySignature()
                 && serverSecureMessage.getPayload() instanceof Miner miner
         ) {
@@ -203,7 +203,7 @@ public class Client {
 
         if (
                 PeerComunication.sendMessageToPeer
-                        (peerServerHost,peerServerPort,"GET_SERVER_OBJECT",null)
+                        (peerServerHost,peerServerPort,"GET_MINER",null)
                         instanceof SecureMessage serverSecureMessage && serverSecureMessage.verifySignature()
                         && serverSecureMessage.getPayload() instanceof Miner miner
         ) {

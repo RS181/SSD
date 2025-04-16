@@ -112,8 +112,8 @@ public class ClientHandler implements Runnable {
                     case "GET_ROUTING_TABLE":
                         getRoutingTable(out);
                         break;
-                    case "GET_SERVER_OBJECT":
-                        getServerObject(out);
+                    case "GET_MINER":
+                        getMiner(out);
                     case "GET_SERVER_INFO":
                         getServerInfo(out);
                         break;
@@ -879,11 +879,11 @@ public class ClientHandler implements Runnable {
             }
         }
     }
-    private void getServerObject(ObjectOutputStream clientOut) {
+    private void getMiner(ObjectOutputStream clientOut) {
         try{
-            logger.info("Received GET_SERVER_OBJECT");
+            logger.info("Received GET_MINER");
             SecureMessage secureMessage =
-                    new SecureMessage("GET_SERVER_OBJECT",miner,miner.getPublicKey(),miner.getPrivateKey());
+                    new SecureMessage("GET_MINER",miner,miner.getPublicKey(),miner.getPrivateKey());
             clientOut.writeObject(secureMessage);
             clientOut.flush();
         } catch (Exception e){
