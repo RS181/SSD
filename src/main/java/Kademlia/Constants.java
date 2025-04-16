@@ -35,4 +35,12 @@ public class Constants {
      * operation
      */
     public static final int MAX_ROUTING_FIND_NODES = 3;
+
+    /**
+     * Defines the number of bits that are present in
+     * the Node id of a kademlia Node (here we represent
+     * the Node id inte binary format, e.g. "10100001" is
+     * an 8 bit Node ID)
+     */
+    public static final int NUMBER_OF_BITS_NODE_ID = 16;
 }
