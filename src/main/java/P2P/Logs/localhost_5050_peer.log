@@ -1,0 +1,144 @@
+abr. 14, 2025 12:08:28 DA TARDE P2P.Server run
+INFO: server: endpoint running at port 5050 ...
+abr. 14, 2025 12:09:57 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53933
+abr. 14, 2025 12:09:57 DA TARDE P2P.ClientHandler addPeerHandler
+INFO: Adding Peer/Node...
+abr. 14, 2025 12:09:58 DA TARDE P2P.ClientHandler addPeerHandler
+INFO: Peer/Node we are going to try to Add [Node Id = 01100110, Ip address = localhost, Port = 2020]
+abr. 14, 2025 12:11:12 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53944
+abr. 14, 2025 12:11:12 DA TARDE P2P.ClientHandler addTransactionHandler
+INFO: Adding transaction ...
+abr. 14, 2025 12:11:38 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53951
+abr. 14, 2025 12:11:38 DA TARDE P2P.ClientHandler mineHandler
+INFO: Received MINE message
+abr. 14, 2025 12:11:38 DA TARDE P2P.ClientHandler mineHandler
+INFO: Started Mining Block ...
+abr. 14, 2025 12:11:44 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53953
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler mineHandler
+INFO: Finished Mining Block !!!
+abr. 14, 2025 12:11:44 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53954
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler addMinedBlockHandler
+INFO: Adding Mined block sent by peer ...
+abr. 14, 2025 12:11:44 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53963
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:11:51 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53964
+abr. 14, 2025 12:11:58 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53972
+abr. 14, 2025 12:12:00 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53978
+abr. 14, 2025 12:13:20 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54005
+abr. 14, 2025 12:13:20 DA TARDE P2P.ClientHandler mineHandler
+INFO: Received MINE message
+abr. 14, 2025 12:13:20 DA TARDE P2P.ClientHandler mineHandler
+INFO: Started Mining Block ...
+abr. 14, 2025 12:14:01 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54008
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler mineHandler
+INFO: Finished Mining Block !!!
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:14:01 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54009
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler addMinedBlockHandler
+INFO: Adding Mined block sent by peer ...
+abr. 14, 2025 12:14:01 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54017
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:14:28 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54023
+abr. 14, 2025 12:14:31 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54024
+abr. 14, 2025 12:14:38 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54026
+abr. 14, 2025 12:14:47 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54030
+abr. 14, 2025 12:17:36 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54049
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler mineHandler
+INFO: Received MINE message
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler mineHandler
+INFO: Started Mining Block ...
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler mineHandler
+INFO: Finished Mining Block !!!
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler mineHandler
+INFO: Reseting Transactions pool
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler mineHandler
+INFO: Sending STOP to @localhost 4040
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler mineHandler
+INFO: Sending STOP to @localhost 2020
+abr. 14, 2025 12:17:37 DA TARDE P2P.ClientHandler mineHandler
+INFO: Sending STOP to @localhost 3030
+abr. 14, 2025 12:17:37 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54056
+abr. 14, 2025 12:17:37 DA TARDE P2P.ClientHandler findNodeHandler
+INFO: Received Find Node message
+abr. 14, 2025 12:17:37 DA TARDE P2P.ClientHandler findNodeHandler
+INFO: Receive FIND_NODE(00110110)
+abr. 14, 2025 12:17:37 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54057
+abr. 14, 2025 12:17:37 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:17:37 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:17:42 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54061
+abr. 14, 2025 12:17:43 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54062
+abr. 14, 2025 12:17:47 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54064
+abr. 14, 2025 12:18:20 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54072
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:18:20 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54073
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler addMinedBlockHandler
+INFO: Adding Mined block sent by peer ...
+abr. 14, 2025 12:18:20 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54080
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:19:16 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54095
+abr. 14, 2025 12:19:16 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54096
+abr. 14, 2025 12:19:27 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54098
+abr. 14, 2025 12:19:27 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Removing Peer/Node...
+abr. 14, 2025 12:19:27 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Peer/Node we are going to remove [Node Id = 01100110, Ip address = localhost, Port = 2020]
+abr. 14, 2025 12:19:29 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54101
+abr. 14, 2025 12:19:29 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Removing Peer/Node...
+abr. 14, 2025 12:19:29 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Peer/Node we are going to remove [Node Id = 00110010, Ip address = localhost, Port = 3030]
+abr. 14, 2025 12:19:29 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54103
+abr. 14, 2025 12:19:29 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Removing Peer/Node...
+abr. 14, 2025 12:19:29 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Peer/Node we are going to remove [Node Id = 01100100, Ip address = localhost, Port = 4040]

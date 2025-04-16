@@ -1,0 +1,8 @@
+abr. 16, 2025 9:25:23 DA MANHÃ P2P.Server run
+INFO: server: endpoint running at port 2020 ...
+abr. 16, 2025 9:25:25 DA MANHÃ P2P.Server run
+INFO: server: new connection from @127.0.0.1 61427
+abr. 16, 2025 9:41:56 DA MANHÃ P2P.Server run
+INFO: server: new connection from @127.0.0.1 61567
+abr. 16, 2025 9:41:56 DA MANHÃ P2P.ClientHandler removePeerHandler
+INFO: Removing Peer/Node...

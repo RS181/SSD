@@ -1,0 +1,118 @@
+abr. 14, 2025 12:08:23 DA TARDE P2P.Server run
+INFO: server: endpoint running at port 4040 ...
+abr. 14, 2025 12:09:57 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53932
+abr. 14, 2025 12:09:57 DA TARDE P2P.ClientHandler addPeerHandler
+INFO: Adding Peer/Node...
+abr. 14, 2025 12:09:57 DA TARDE P2P.ClientHandler addPeerHandler
+INFO: Peer/Node we are going to try to Add [Node Id = 01100110, Ip address = localhost, Port = 2020]
+abr. 14, 2025 12:11:08 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53943
+abr. 14, 2025 12:11:08 DA TARDE P2P.ClientHandler addTransactionHandler
+INFO: Adding transaction ...
+abr. 14, 2025 12:11:37 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53949
+abr. 14, 2025 12:11:37 DA TARDE P2P.ClientHandler mineHandler
+INFO: Received MINE message
+abr. 14, 2025 12:11:37 DA TARDE P2P.ClientHandler mineHandler
+INFO: Started Mining Block ...
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler mineHandler
+INFO: Finished Mining Block !!!
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler mineHandler
+INFO: Reseting Transactions pool
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler mineHandler
+INFO: Sending STOP to @localhost 5050
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler mineHandler
+INFO: Sending STOP to @localhost 2020
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler mineHandler
+INFO: Sending STOP to @localhost 3030
+abr. 14, 2025 12:11:44 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53959
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler findNodeHandler
+INFO: Received Find Node message
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler findNodeHandler
+INFO: Receive FIND_NODE(01100001)
+abr. 14, 2025 12:11:44 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53960
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:11:44 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:12:09 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53981
+abr. 14, 2025 12:12:11 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53982
+abr. 14, 2025 12:12:12 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53983
+abr. 14, 2025 12:12:33 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53987
+abr. 14, 2025 12:12:39 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53989
+abr. 14, 2025 12:12:41 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 53990
+abr. 14, 2025 12:14:01 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54010
+abr. 14, 2025 12:14:01 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54011
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler addMinedBlockHandler
+INFO: Adding Mined block sent by peer ...
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:14:01 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54016
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:14:01 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:14:19 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54020
+abr. 14, 2025 12:14:23 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54021
+abr. 14, 2025 12:17:36 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54050
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:17:36 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54051
+abr. 14, 2025 12:17:36 DA TARDE P2P.ClientHandler addMinedBlockHandler
+INFO: Adding Mined block sent by peer ...
+abr. 14, 2025 12:17:37 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54060
+abr. 14, 2025 12:17:37 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:17:37 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:17:54 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54065
+abr. 14, 2025 12:17:59 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54066
+abr. 14, 2025 12:18:20 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54074
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler run
+WARNING: Caught SocketException in ClientHandler (run)
+abr. 14, 2025 12:18:20 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54075
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler addMinedBlockHandler
+INFO: Adding Mined block sent by peer ...
+abr. 14, 2025 12:18:20 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54081
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Store <Key,Value> message
+abr. 14, 2025 12:18:20 DA TARDE P2P.ClientHandler storeHandler
+INFO: Received Key/Block to Store
+abr. 14, 2025 12:19:12 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54093
+abr. 14, 2025 12:19:12 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54094
+abr. 14, 2025 12:19:27 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54099
+abr. 14, 2025 12:19:27 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Removing Peer/Node...
+abr. 14, 2025 12:19:27 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Peer/Node we are going to remove [Node Id = 01100110, Ip address = localhost, Port = 2020]
+abr. 14, 2025 12:19:29 DA TARDE P2P.Server run
+INFO: server: new connection from @127.0.0.1 54102
+abr. 14, 2025 12:19:29 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Removing Peer/Node...
+abr. 14, 2025 12:19:29 DA TARDE P2P.ClientHandler removePeerHandler
+INFO: Peer/Node we are going to remove [Node Id = 00110010, Ip address = localhost, Port = 3030]
