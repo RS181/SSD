@@ -52,7 +52,7 @@ public class Server implements Runnable {
         this.port = port;
         this.logger = logger;
         this.peer = peer;
-        this.miner = new Miner();
+        this.miner = new Miner(peer.privateKey,peer.publicKey);
         this.blockchain = new Blockchain();
         this.kademliaNode = new Node(host, port, true);
 

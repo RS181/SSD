@@ -1,22 +1,16 @@
 package P2P;
 
-import BlockChain.Blockchain;
-import BlockChain.Miner;
-import BlockChain.Transaction;
 import Kademlia.Node;
 
-import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
+
+import java.security.*;
+import java.security.spec.*;
+import java.nio.file.*;
+import java.util.Base64;
 
 /**
  * Class that represents a Peer in our project.
@@ -30,6 +24,8 @@ public class Peer {
     String host;
     int port;
     Logger logger;
+    PublicKey publicKey;
+    PrivateKey privateKey;
 
 
     public Peer(String hostname, int port) {
@@ -45,6 +41,8 @@ public class Peer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        initKeys();
     }
 
     public static void main(String[] args) throws Exception {
@@ -70,6 +68,54 @@ public class Peer {
             System.out.println("Peer is shutting down...");
             server.gracefullShutdown();
         }));
+
     }
+
+
+    private void initKeys() {
+        try {
+            String dirPath = "./src/main/java/P2P/PeersKeys/";
+            Files.createDirectories(Paths.get(dirPath));
+
+            String prefix = host + "_" + port;
+            Path privateKeyPath = Paths.get(dirPath + prefix + "_PRK");
+            Path publicKeyPath = Paths.get(dirPath + prefix + "_PKK");
+
+            if (Files.exists(privateKeyPath) && Files.exists(publicKeyPath)) {
+                // Load keys
+                byte[] privBytes = Files.readAllBytes(privateKeyPath);
+                byte[] pubBytes = Files.readAllBytes(publicKeyPath);
+
+                KeyFactory kf = KeyFactory.getInstance("RSA");
+
+                PKCS8EncodedKeySpec privSpec = new PKCS8EncodedKeySpec(privBytes);
+                X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubBytes);
+
+                this.privateKey = kf.generatePrivate(privSpec);
+                this.publicKey = kf.generatePublic(pubSpec);
+
+                logger.info("Keys loaded from " + dirPath);
+            } else {
+                // Generate new keys
+                KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+                keyGen.initialize(2048);
+                KeyPair keyPair = keyGen.generateKeyPair();
+                this.privateKey = keyPair.getPrivate();
+                this.publicKey = keyPair.getPublic();
+
+                // Save the key to PeerKeys directory
+                Files.write(privateKeyPath, privateKey.getEncoded());
+                Files.write(publicKeyPath, publicKey.getEncoded());
+
+                logger.info("Keys were created and stored in " + dirPath);
+            }
+
+        } catch (Exception e) {
+            //e.printStackTrace();
+            logger.warning("Error while creating/loading keys " + e.getMessage());
+        }
+    }
+
+
 }
 

@@ -19,13 +19,17 @@ public class Miner implements Serializable {
     private boolean stopMining; // indicates if a miner has to stop mining
 
     /**
-     * Constructor of a Miner:
+     * Default Constructor of a Miner:
      * --> Create Key pair for this miner
      */
     public Miner (){
         createKeyPair();
     }
 
+    public Miner (PrivateKey privateKey, PublicKey publicKey){
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;
+    }
 
     /* Getter's */
     public PublicKey getPublicKey() {
