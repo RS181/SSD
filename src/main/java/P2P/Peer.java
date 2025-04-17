@@ -74,42 +74,10 @@ public class Peer {
 
     private void initKeys() {
         try {
-            String dirPath = "./src/main/java/P2P/PeersKeys/";
-            Files.createDirectories(Paths.get(dirPath));
-
-            String prefix = host + "_" + port;
-            Path privateKeyPath = Paths.get(dirPath + prefix + "_PRK");
-            Path publicKeyPath = Paths.get(dirPath + prefix + "_PKK");
-
-            if (Files.exists(privateKeyPath) && Files.exists(publicKeyPath)) {
-                // Load keys
-                byte[] privBytes = Files.readAllBytes(privateKeyPath);
-                byte[] pubBytes = Files.readAllBytes(publicKeyPath);
-
-                KeyFactory kf = KeyFactory.getInstance("RSA");
-
-                PKCS8EncodedKeySpec privSpec = new PKCS8EncodedKeySpec(privBytes);
-                X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubBytes);
-
-                this.privateKey = kf.generatePrivate(privSpec);
-                this.publicKey = kf.generatePublic(pubSpec);
-
-                logger.info("Keys loaded from " + dirPath);
-            } else {
-                // Generate new keys
-                KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-                keyGen.initialize(2048);
-                KeyPair keyPair = keyGen.generateKeyPair();
-                this.privateKey = keyPair.getPrivate();
-                this.publicKey = keyPair.getPublic();
-
-                // Save the key to PeerKeys directory
-                Files.write(privateKeyPath, privateKey.getEncoded());
-                Files.write(publicKeyPath, publicKey.getEncoded());
-
-                logger.info("Keys were created and stored in " + dirPath);
-            }
-
+            KeyPair keyPair = KeysUtils.loadOrCreateKeyPair(host, port);
+            this.privateKey = keyPair.getPrivate();
+            this.publicKey = keyPair.getPublic();
+            logger.info("Keys were loaded/created with sucess!!");
         } catch (Exception e) {
             //e.printStackTrace();
             logger.warning("Error while creating/loading keys " + e.getMessage());
