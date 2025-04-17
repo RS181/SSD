@@ -10,7 +10,7 @@ import java.security.spec.*;
  */
 public class KeysUtils {
 
-    private static final String KEYS_DIR = "./src/main/java/P2P/PeersKeys/";
+    public static final String KEYS_DIR = "./src/main/java/P2P/PeersKeys/";
 
     public static KeyPair loadOrCreateKeyPair(String host, int port) throws Exception {
         String prefix = host + "_" + port;
@@ -40,7 +40,7 @@ public class KeysUtils {
         return keyPair;
     }
 
-    public static PrivateKey loadPrivateKey(Path path) throws Exception {
+    private static PrivateKey loadPrivateKey(Path path) throws Exception {
         byte[] keyBytes = Files.readAllBytes(path);
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");

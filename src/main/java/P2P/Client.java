@@ -132,9 +132,9 @@ public class Client {
                 case "15":
                     if (PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort,"GET_ROUTING_TABLE",null) instanceof SecureMessage m){
                         System.out.println(m.getPayload());
-                        System.out.println(m.verifySignature());
-                        m.setPayload("dummy");
-                        System.out.println(m.verifySignature());
+                        //System.out.println(m.verifySignature());
+                        //m.setPayload("dummy");
+                        //System.out.println(m.verifySignature());
                     }
 
                     break;

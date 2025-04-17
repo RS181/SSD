@@ -6,6 +6,7 @@ import Cryptography.CryptoUtils;
 import P2P.PeerComunication;
 import P2P.Server;
 
+import java.security.PublicKey;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -39,8 +40,6 @@ public class Operations {
         SecureMessage secureMessage =
                 new SecureMessage("PING",senderNode,miner.getPublicKey(),miner.getPrivateKey());
 
-        //String response =
-        //        (String) PeerComunication.sendMessageToPeer(targetHost,targerPort,"PING",senderNode);
         String response =
                 (String) PeerComunication.sendMessageToPeer(targetHost,targerPort,"PING",secureMessage);
         if (response != null)
@@ -82,6 +81,7 @@ public class Operations {
                     instanceof SecureMessage routingSecureMessage
                             && routingSecureMessage.verifySignature()
                             && routingSecureMessage.getPayload() instanceof  RoutingTable senderRoutingTable
+                            && checkNodeId(routingSecureMessage,senderNode)
                 )
             {
                 System.out.println("=====FIND_NODE Iteration [" + i + "]=====");
@@ -94,7 +94,8 @@ public class Operations {
 
                     if (PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "FIND_NODE", targetNodeId)
                             instanceof SecureMessage findSecureMessage &&
-                            findSecureMessage.verifySignature()
+                            findSecureMessage.verifySignature() &&
+                            checkNodeId(findSecureMessage,n)
                     )
                     {
                         List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
@@ -153,7 +154,8 @@ public class Operations {
         System.out.println("=====JOIN NETWORK Iteration [0]=====");
         if (PeerComunication.sendMessageToPeer(bootstrap.getIpAddr(), bootstrap.getPort(), "FIND_NODE", joiningNode.getNodeId())
                 instanceof SecureMessage findSecureMessage &&
-                findSecureMessage.verifySignature()
+                findSecureMessage.verifySignature() &&
+                checkNodeId(findSecureMessage,bootstrap)
         ) {
 
             List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
@@ -161,7 +163,10 @@ public class Operations {
 
             if (PeerComunication.sendMessageToPeer(
                     bootstrap.getIpAddr(), bootstrap.getPort(), "GET_STORAGE", null)
-            instanceof SecureMessage storageSecureMessage && storageSecureMessage.verifySignature()) {
+                    instanceof SecureMessage storageSecureMessage
+                    && storageSecureMessage.verifySignature()
+                    && checkNodeId(storageSecureMessage,bootstrap)
+            ) {
 
                 // 2. update joining nodes local storage with local storage of k closest nodes
                 Map<String, Block> bootstrapStorage = (Map<String, Block>) storageSecureMessage.getPayload();
@@ -225,6 +230,8 @@ public class Operations {
                     ) instanceof SecureMessage routingSecureMessage
                     && routingSecureMessage.verifySignature()
                     && routingSecureMessage.getPayload() instanceof RoutingTable senderRoutingTable
+                    && checkNodeId(routingSecureMessage,senderNode)
+
             ) {
                 System.out.println("===== FIND_VALUE Iteration [" + i + "] =====");
 
@@ -238,9 +245,10 @@ public class Operations {
                         Object response = PeerComunication.sendMessageToPeer(node.getIpAddr(), node.getPort(),
                                 "FIND_VALUE", keyId);
 
-
-                        if (response instanceof SecureMessage secureMessage &&
-                                secureMessage.verifySignature())
+                        if (response instanceof SecureMessage secureMessage
+                                && secureMessage.verifySignature()
+                                && checkNodeId(secureMessage,node)
+                        )
                         {
                             if(secureMessage.getPayload() instanceof Block foundValue &&
                                     foundValue != null) {
@@ -313,8 +321,9 @@ public class Operations {
                 PeerComunication.sendMessageToPeer(
                         senderNode.getIpAddr(), senderNode.getPort(),
                         "FIND_NODE",keyId
-                ) instanceof  SecureMessage findSecureMessage &&
-                findSecureMessage.verifySignature()
+                ) instanceof  SecureMessage findSecureMessage
+                && findSecureMessage.verifySignature()
+                && checkNodeId(findSecureMessage,senderNode)
         ){
             List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
 
@@ -378,7 +387,15 @@ public class Operations {
         }
     }
 
-
+    public static boolean checkNodeId(SecureMessage secureMessage, Node n) {
+        PublicKey pubKey = secureMessage.getSenderPublickKey();
+        String claimedNodeId = n.getNodeId();
+        String computedNodeId = CryptoUtils.generateSecureNodeId(pubKey);
+        System.out.println("claimedNodeId = " + claimedNodeId );
+        System.out.println("computedNodeId = " + computedNodeId);
+        System.out.println("Node id is valid? : " + claimedNodeId.equals(computedNodeId));
+        return claimedNodeId.equals(computedNodeId);
+    }
 
     /**
      * Generates a key ID based on a certain key.

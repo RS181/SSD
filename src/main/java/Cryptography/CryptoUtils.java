@@ -1,6 +1,7 @@
 package Cryptography;
 
 import BlockChain.Utils;
+import Kademlia.Constants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -107,6 +108,26 @@ public class CryptoUtils {
         oos.writeObject(obj);
         oos.flush();
         return baos.toByteArray();
+    }
+
+    public static String generateSecureNodeId(PublicKey publicKey){
+        String hashHex = CryptoUtils.getHash256(String.valueOf(publicKey)); // SHA-1 hash in hex
+        byte[] hashBytes = CryptoUtils.hexStringToByteArray(hashHex); // Convert hex string to bytes
+
+        int numberOfBits = Constants.NUMBER_OF_BITS_NODE_ID;
+        int numberOfBytesNeeded = (int) Math.ceil(numberOfBits / 8.0);
+
+        if (hashBytes.length < numberOfBytesNeeded) {
+            throw new IllegalArgumentException("Hash output is too short for the required number of bits");
+        }
+
+        StringBuilder binaryBuilder = new StringBuilder();
+        for (int i = 0; i < numberOfBytesNeeded; i++) {
+            binaryBuilder.append(String.format("%8s", Integer.toBinaryString(hashBytes[i] & 0xFF)).replace(' ', '0'));
+        }
+
+        // Truncate to the exact number of bits required
+        return binaryBuilder.substring(0, numberOfBits);
     }
 
 

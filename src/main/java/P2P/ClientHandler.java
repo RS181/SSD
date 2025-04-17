@@ -4,6 +4,7 @@ import BlockChain.Block;
 import BlockChain.Blockchain;
 import BlockChain.Miner;
 import BlockChain.Transaction;
+import Cryptography.CryptoUtils;
 import Kademlia.*;
 
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.security.PublicKey;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -141,7 +143,7 @@ public class ClientHandler implements Runnable {
             System.out.println("closed client connection");
         } catch (SocketException e) {
             logger.warning("Caught SocketException in ClientHandler (run)");
-            //e.printStackTrace();
+            e.printStackTrace();
         } catch (IOException | ClassNotFoundException e) {
             logger.warning("Caught IOException or ClassNotFoundException in ClientHandler (run)");
             //e.printStackTrace();
@@ -270,7 +272,8 @@ public class ClientHandler implements Runnable {
 
             if (receivedObject instanceof  SecureMessage secureMessage &&
                     secureMessage.verifySignature() &&
-                    secureMessage.getPayload() instanceof Node n
+                    secureMessage.getPayload() instanceof Node n &&
+                    Operations.checkNodeId(secureMessage, n)
             ){
                 logger.info("Received Ping from " + n);
                 clientOut.writeObject("OK");

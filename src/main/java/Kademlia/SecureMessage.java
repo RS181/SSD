@@ -70,6 +70,10 @@ public class SecureMessage implements Serializable {
         return payload;
     }
 
+    public PublicKey getSenderPublickKey() {
+        return senderPublickKey;
+    }
+
     public void setPayload(Object payload) {
         this.payload = payload;
     }
