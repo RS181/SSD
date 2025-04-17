@@ -218,7 +218,7 @@ public class Operations {
      * @return The {@link Block} value if found, or {@code null} if not found in the network.
      */
     public static Block findValue(Node senderNode, String key,Miner miner) {
-        String keyId = generateKeyId(key);
+        String keyId = CryptoUtils.generateKeyId(key);
         Set<Node> queriedNodes = new HashSet<>();
         Set<Node> discoveredNodes = new HashSet<>();
         int i = 1;
@@ -312,7 +312,7 @@ public class Operations {
      *       across the entire network.
      */
     public static void store (Node senderNode, String key, Block value, Miner miner){
-        String keyId =  generateKeyId(key);
+        String keyId =  CryptoUtils.generateKeyId(key);
         System.out.println("Key Id = " + keyId);
 
         // Get the k closest Nodes  to keyId (from sender Node)
@@ -397,21 +397,5 @@ public class Operations {
         return claimedNodeId.equals(computedNodeId);
     }
 
-    /**
-     * Generates a key ID based on a certain key.
-     * The key ID is defined as the first 8 bits of the SHA-1 hash of the key,
-     * returned as an 8-character binary string (e.g., "00110001").
-     *
-     * TODO: possivelmente vamos ter que ajustar para mais bits
-     * The first byte of the hash is extracted and converted into an 8-bit binary string.
-     *
-     * @param key Strin that corresponds to a key
-     * @return The generated Key ID as an 8-bit binary string.
-     */
-    public static String generateKeyId(String key) {
-        String input = CryptoUtils.getHash1(key);
-        byte[] bytes = input.getBytes();
-        int first8Bits = bytes[0] & 0xFF; // Positive 8-bit value
-        return String.format("%8s", Integer.toBinaryString(first8Bits)).replace(' ', '0'); // 8-bit binary
-    }
+
 }

@@ -162,7 +162,7 @@ public class ClientHandler implements Runnable {
                 
                 if (receivedObject instanceof Block b ){
                     logger.info("Received Block to add to 'kademlia' node's Storage = [" + b.getBlockHash() + "]");
-                    String keyId = Operations.generateKeyId(b.getBlockHash());
+                    String keyId = CryptoUtils.generateKeyId(b.getBlockHash());
 
                     kademliaNode.addToLocalStorage(keyId,b);
                     clientOut.writeObject("Updated Kademlia Node storage \n:" + kademliaNode.getLocalStorage());

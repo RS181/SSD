@@ -68,9 +68,6 @@ public class Node implements Serializable {
         return localStorage;
     }
 
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
 
     /**
      * Adds node to Routing table

@@ -111,7 +111,16 @@ public class CryptoUtils {
     }
 
     public static String generateSecureNodeId(PublicKey publicKey){
-        String hashHex = CryptoUtils.getHash256(String.valueOf(publicKey)); // SHA-1 hash in hex
+        String hashHex = CryptoUtils.getHash256(String.valueOf(publicKey)); // SHA-256 hash in hex
+        return generateBinaryId(hashHex);
+    }
+    
+    public static String generateKeyId(String key){
+        String hashHex = CryptoUtils.getHash256(key);
+        return generateBinaryId(hashHex);
+    }
+
+    private static String generateBinaryId(String hashHex) {
         byte[] hashBytes = CryptoUtils.hexStringToByteArray(hashHex); // Convert hex string to bytes
 
         int numberOfBits = Constants.NUMBER_OF_BITS_NODE_ID;
