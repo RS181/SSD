@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
+/**
+ * Class that represent's a block that will be used
+ * to construct the blockchain
+ */
 public class Block implements Serializable {
     private ArrayList<Transaction> transactions;
     private String blockHash;
@@ -24,7 +28,6 @@ public class Block implements Serializable {
         this.nonce = 0;
         calculateBlockHash();
     }
-
 
     /* Getter's & Setter's (most Setter's are there just for testing purposes) */
 
@@ -60,8 +63,6 @@ public class Block implements Serializable {
         this.nonce++;
     }
 
-    //TODO: ver qual a melhor maneira de adicionar a assinatura do Miner (senão tiver a certeza deixar assim para já)
-    // TODO : PERGUNTAR AO PROFESSOR
     public void setMinerSignature(byte[] minerSignature) {
         if (this.minerSignature == null)
             this.minerSignature =  minerSignature;
@@ -92,7 +93,9 @@ public class Block implements Serializable {
     public void setNonce(int nonce) {
         this.nonce = nonce;
     }
-    /* Auxiliar method's */
+
+
+    /* Auxiliar methods */
 
     /**
      * Calculates the hash of the current Block
@@ -111,5 +114,4 @@ public class Block implements Serializable {
                 "Nonce = " + this.nonce  + ", "+
                 "Transactions = " +transactions + " }" ;
     }
-
 }

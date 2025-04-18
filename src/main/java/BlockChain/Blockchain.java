@@ -13,7 +13,6 @@ import java.util.*;
  *
  */
 public class Blockchain implements Serializable {
-
     private List<Block> blockchain = new ArrayList<>();
     private Block lastBlock;
 
@@ -22,7 +21,6 @@ public class Blockchain implements Serializable {
      */
     public Blockchain(){
     }
-
 
     /**
      * Constructor that receives a ArrayList of blocks and creates the Blockchain object
@@ -48,7 +46,6 @@ public class Blockchain implements Serializable {
     /* Auxiliar methods */
 
     /**
-     * TODO: Verificar se a lógica esta correta
      * Check's all block's in the  blockchain (starting from the first)
      * So, here we’re making three specific checks for every block:
      * (a) The stored hash of the current block is actually what it calculates
@@ -70,7 +67,6 @@ public class Blockchain implements Serializable {
             String blockHeader = currentBlock.getBlockHash() + currentBlock.getPreviousBlockHash()
                     + currentBlock.getNonce() + currentBlock.getTimestamp() + currentBlock.getTransactions();
 
-
             a = currentBlock.getBlockHash().equals(currentBlock.calculateBlockHash());
             b = previousHash.equals(currentBlock.getPreviousBlockHash());
             c = currentBlock.getBlockHash().substring(0,Constants.DIFFICULTY).equals(prefixString);
@@ -91,7 +87,7 @@ public class Blockchain implements Serializable {
 
     /**
      * Check if the block we are trying to add to the chain is valid and also check
-     * if the current  chain is valid.If so add's the given block to the blochain
+     * if the current  chain is valid.If so adds the given block to the blochain
      * @param block             that we want to add to the blockchain
      * @param minerPublickKey   publick key of the miner that suposedely mined the block
      *

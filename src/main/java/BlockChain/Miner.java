@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 /**
- * This class represents some node trying to mine a block and add it to the Blockchain
- *
+ * This class represents a Miner, that will mine blocks with
+ * Proof-Of-Work consensus algorithm
  */
 public class Miner implements Serializable {
     private Block minedBlock;
@@ -39,7 +39,7 @@ public class Miner implements Serializable {
     // JUST FOR TESTING PURPOSES (SHOULD NOT BE ABLE TO GET PRIV KEY OF MINER)
     public PrivateKey getPrivateKey(){ return privateKey; }
 
-    /* Auxiliar method's */
+    /* Auxiliar methods */
 
     /**
      * Creates a Public and Private Key for miner, so
@@ -79,7 +79,8 @@ public class Miner implements Serializable {
      */
     public Block mineBlock(ArrayList<Transaction> tranctions, String previousBlockHash) {
         // Sort transactions by timestamp in ascending order
-        tranctions.sort(Comparator.comparingLong(Transaction::getTimestamp));        this.minedBlock = new Block(tranctions,previousBlockHash);
+        tranctions.sort(Comparator.comparingLong(Transaction::getTimestamp));
+        this.minedBlock = new Block(tranctions,previousBlockHash);
         System.out.println("Before Mining " + stopMining);
         minedBlock = proofOfWork(minedBlock,Constants.DIFFICULTY);
         if (stopMining) { // Check if miner 'received' stop signal (if so return null)
@@ -129,7 +130,6 @@ public class Miner implements Serializable {
         }
         return b;
     }
-
 
     public void stopMining(){
         stopMining = true;
