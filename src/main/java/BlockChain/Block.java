@@ -21,6 +21,11 @@ public class Block implements Serializable {
     private  byte[] minerSignature = null; // Digital Signature of this block's header with Priv. Key of the respectiv miner
     private PublicKey minerPublicKey = null; // Public key of this block miner
 
+    /**
+     * Constructor for a Block
+     * @param transactions       List of transaction that will be a part of this block
+     * @param previousBlockHash  The hash of the last block in the blockchain
+     */
     public Block(ArrayList<Transaction> transactions, String previousBlockHash) {
         this.transactions = transactions;
         this.previousBlockHash = previousBlockHash;
