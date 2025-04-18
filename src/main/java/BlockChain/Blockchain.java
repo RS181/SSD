@@ -32,13 +32,17 @@ public class Blockchain implements Serializable {
         this.blockchain = blockChainList;
     }
 
-    /* Getter's  */
+    /* Getter's & Setter's */
     public List<Block> getBlockchain() {
         return blockchain;
     }
 
     public Block getLastBlock() {
         return lastBlock;
+    }
+
+    public void setLastBlock(Block lastBlock) {
+        this.lastBlock = lastBlock;
     }
 
     /* Auxiliar methods */

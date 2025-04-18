@@ -1,6 +1,7 @@
 package Kademlia;
 
 import BlockChain.Block;
+import BlockChain.Blockchain;
 import BlockChain.Miner;
 import Cryptography.CryptoUtils;
 import P2P.PeerComunication;
@@ -168,9 +169,10 @@ public class Operations {
                     && checkNodeId(storageSecureMessage,bootstrap)
             ) {
 
-                // 2. update joining nodes local storage with local storage of k closest nodes
+                // update joining nodes local storage with local storage of k closest nodes
+                PeerComunication.sendMessageToPeer(
+                        joiningNode.getIpAddr(), joiningNode.getPort(), "RESET_STORAGE", null);
                 Map<String, Block> bootstrapStorage = (Map<String, Block>) storageSecureMessage.getPayload();
-
                 updatePeerStorageInfo(joiningNode, bootstrapStorage);
 
                 PeerComunication.sendMessageToPeer(
@@ -178,10 +180,27 @@ public class Operations {
                 System.out.println("Closest Nodes to [" + joiningNode + "] =" + kClosestNodes);
                 System.out.println("====================================");
 
-                System.out.println("=====JOIN NETWORK Iteration [1]=====");
+                // Update joining node blockchain with bootstraps blockchain
+                PeerComunication.sendMessageToPeer(
+                        joiningNode.getIpAddr(), joiningNode.getPort(), "RESET_BLOCKCHAIN", null);
+
+                if (PeerComunication.sendMessageToPeer(
+                                bootstrap.getIpAddr(),bootstrap.getPort(),"GET_BLOCKCHAIN",null)
+                                instanceof  Blockchain bootstrapBlockchain)
+                {
+                    updatePeerBlockchain(joiningNode, bootstrapBlockchain);
+                }
+
+
+
+                System.out.println("=====JOIN NETWORK Iteration [2]=====");
                 for (Node n : kClosestNodes)
                     updatePeerRoutingInfo(n, new ArrayList<>(Arrays.asList(joiningNode)));
                 System.out.println("====================================");
+
+
+
+
             }
             else {
                 System.out.println("[GET_STORAGE] Error ocurred in joinNetwork (could be because" +
@@ -382,6 +401,16 @@ public class Operations {
             System.out.println(
                     PeerComunication.sendMessageToPeer(
                             targetNode.getIpAddr(), targetNode.getPort(), "ADD_TO_STORAGE",b
+                    )
+            );
+        }
+    }
+
+    private static void updatePeerBlockchain (Node targetNode, Blockchain blockchain){
+        for(Block b : blockchain.getBlockchain()){
+            System.out.println(
+                    PeerComunication.sendMessageToPeer(
+                            targetNode.getIpAddr(), targetNode.getPort(), "ADD_MINED_BLOCK", b
                     )
             );
         }

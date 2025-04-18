@@ -80,6 +80,9 @@ public class ClientHandler implements Runnable {
                     case "ADD_TO_STORAGE":
                         addToStorageHandler(in,out);
                         break;
+                    case "RESET_STORAGE": // used when nodes joins the network
+                        resetStorageHandler(out);
+                        break;
 
                     // Blockchain/App related methods
                     case "MINE":
@@ -90,6 +93,9 @@ public class ClientHandler implements Runnable {
                         break;
                     case "ADD_TRANSACTION":
                         addTransactionHandler(in, out);
+                        break;
+                    case "RESET_BLOCKCHAIN": // used when nodes joins the network
+                        resetBlockchainHandler(out);
                         break;
 
                     // App only related methods
@@ -177,6 +183,27 @@ public class ClientHandler implements Runnable {
 
         }
     
+    }
+
+    private  void  resetStorageHandler(ObjectOutputStream clientOut){
+        synchronized (kademliaNode){
+            try {
+                logger.info("Going to reset node's storage...");
+
+                kademliaNode.getLocalStorage().clear();
+
+                if (kademliaNode.getLocalStorage().isEmpty())
+                    logger.info("Storage of node " + kademliaNode.getIpAddr() + ":" + kademliaNode.getPort() + " was RESET!");
+                else
+                    logger.severe("Storage of node " + kademliaNode.getIpAddr() + ":" + kademliaNode.getPort() + " was NOT RESET!");
+
+                clientOut.writeObject("OK");
+                clientOut.flush();
+
+            }catch (Exception e){
+                logger.severe("Error ocured (resetStorageHandler)");
+            }
+        }
     }
 
     /**
@@ -638,6 +665,24 @@ public class ClientHandler implements Runnable {
                 return true;
         }
         return false;
+    }
+
+    private void resetBlockchainHandler(ObjectOutputStream clientOut) {
+        synchronized (blockchain){
+            try{
+                logger.info("Going to reset blockchain...");
+                blockchain.getBlockchain().clear();
+                blockchain.setLastBlock(null);
+                if(blockchain.getBlockchain().size() == 0 && blockchain.getLastBlock() == null)
+                    logger.info("Blockchain of " + server.host + " " + server.port + " was RESET!!");
+                else
+                    logger.severe("Blockchain of "+ server.host + " " + server.port + " was NOT RESET!!!");
+                clientOut.writeObject("OK");
+                clientOut.flush();
+            }catch (Exception e){
+                logger.severe("Error ocured (resetBlockchainHandler)");
+            }
+        }
     }
 
     private void anounceAuctionWinner(String auctionId) {
