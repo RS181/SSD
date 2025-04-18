@@ -23,16 +23,21 @@ public class Node implements Serializable {
     private PublicKey publicKey;
 
     /**
-     * Constructor for a Kademlia Node
-     * @param ipAddr
-     * @param port
-     * @param createRoutingTable indicates whether to create or not the routing table
-     *                           for this Kademlia Node
+     * Constructs a new Kademlia node.
+     * Initializes the node with its IP address, port, and optionally creates a routing table.
+     * It attempts to load the node's public key from a file based on its IP address and port.
+     * If the public key cannot be loaded, a warning message is printed, and a new secure node ID
+     * is generated based on the (possibly null) public key.
+     *
+     * @param ipAddr             the IP address of the node.
+     * @param port               the port number the node will listen on.
+     * @param createRoutingTable {@code true} if a new routing table should be created for this node,
+     *                           {@code false} otherwise.
+     * @throws RuntimeException  if an error occurs while attempting to load the public key.
      */
     public Node(String ipAddr, int port, boolean createRoutingTable){
         this.ipAddr = ipAddr;
         this.port = port;
-        //this.nodeId = generateNodeId(ipAddr,port);
         try {
             this.publicKey = KeysUtils.loadPublicKey(Path.of(KeysUtils.KEYS_DIR + ipAddr + "_" + port + "_PKK"));
         } catch (Exception e) {
@@ -68,19 +73,22 @@ public class Node implements Serializable {
         return localStorage;
     }
 
+    /* Auxiliar methods */
 
     /**
      * Adds node to Routing table
-     * @param n
+     *
+     * @param n node we are trying to add this nodes routing table
      */
     public  void addToRoutingTable(Node n){
         routingTable.addNodeToBucketList(n);
     }
 
     /**
-     * Adds a block to local Storage
-     * @param key
-     * @param b
+     * Adds a <key,block> pair to local Storage map
+     *
+     * @param key key part
+     * @param b   block part
      */
     public void addToLocalStorage(String key, Block b){localStorage.put(key,b);}
 
@@ -97,6 +105,7 @@ public class Node implements Serializable {
 
     /**
      * Tries to get the block that corresponds to a certain key
+     *
      * @param key
      * @return a Block if there is a matching in nodes local storage, null otherwise
      */
@@ -104,6 +113,9 @@ public class Node implements Serializable {
         return localStorage.get(key);
     }
 
+    /**
+     * Just to print a warning (for debugging purposes)
+     */
     private void printWarning(){
         System.out.println("=================================\n" +
                 "PUBLICK KEY OF NODE: " + ipAddr + " " + port + " IS NULL\n" +

@@ -1,7 +1,7 @@
 package Kademlia;
 
 /**
- * Class that has some constant's relating to Kademlia
+ * Class that contains some constant's relating to Kademlia
  */
 public class Constants {
 

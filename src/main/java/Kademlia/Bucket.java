@@ -7,19 +7,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Class that represents a bucket a routing table of a Kademlia node
+ * Class that represents a bucket in a routing table of a Kademlia node
  */
 public class Bucket implements Serializable {
-
-    private String ownerNodeId; // Node Id of the owner of this bucket
-    private String prefix; // Prefix of 0's of the bucket (represents the corresponding tree prefix of this bucket, see image to understand)
-    private int k; // Max number of nodes per bucket
-    private LinkedList<Node> nodeList; // List of Nodes in current bucket
+    private String ownerNodeId;         // Node Id of the owner of this bucket
+    private String prefix;              // Prefix of 0's of the bucket (represents the corresponding tree prefix of this bucket, see image on notes to understand)
+    private int k;                      // Max number of nodes per bucket
+    private LinkedList<Node> nodeList;  // List of Nodes in current bucket
 
     /**
+     * Constructor for a Bucket
      *
-     * @param prefix
-     * @param k
+     * @param ownerNodeId Node If of owner of this bucket
+     * @param prefix      Prefix of 0's of the bucket
+     * @param k           Max number of nodes per bucket
      */
     public Bucket(String ownerNodeId, String prefix, int k) {
         this.ownerNodeId = ownerNodeId;
@@ -28,22 +29,23 @@ public class Bucket implements Serializable {
         nodeList = new LinkedList<>();
     }
 
-    /* Getter's */
+    /* Getters */
     public String getOwnerNodeId(){return ownerNodeId; }
     public String getPrefix() {
         return prefix;
     }
-
     public int getK() {
         return k;
     }
-
     public LinkedList<Node> getNodeList() {
         return nodeList;
     }
 
+    /* Auxiliar methods */
+
     /**
      * Add's a node to the bucket list
+     *
      * @param n node that we are trying to add
      * @return True if node was added and False otherwise
      */
@@ -60,6 +62,7 @@ public class Bucket implements Serializable {
 
     /**
      * Removes a node from the bucket list
+     *
      * @param n node that we are trying to remove
      * @return True if node was removed and False otherwise
      */
@@ -73,6 +76,9 @@ public class Bucket implements Serializable {
         return false;
     }
 
+    /**
+     * @return number of nodes that are currenltly in the bucket
+     */
     public  int size(){
         return nodeList.size();
     }
@@ -82,6 +88,4 @@ public class Bucket implements Serializable {
         return "[prefix = " + this.prefix + ", " +
                 "Nodes in bucket = " + nodeList + "]";
     }
-
-
 }

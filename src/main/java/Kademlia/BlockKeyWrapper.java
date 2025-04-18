@@ -11,7 +11,6 @@ import java.io.Serializable;
  * in a single object, simplifying communication in Kademlia-like networks.
  */
 public class BlockKeyWrapper implements Serializable {
-
     /**
      * The key identifier associated with the block, typically used as the lookup or storage key.
      */
@@ -21,7 +20,6 @@ public class BlockKeyWrapper implements Serializable {
      * The blockchain block to be transmitted or stored.
      */
     private Block block;
-
 
     /**
      * Constructs a BlockKeyWrapper with the specified block and key ID.

@@ -5,17 +5,21 @@ import java.util.*;
 
 /**
  * Class that Represents a Routing table of a kademlia node
- *
  */
 public class RoutingTable implements Serializable {
     // Info of owner node of this routing table
     String nodeId;
     String ipAddr;
     int port;
+    int lengthOfNodeId;         // determines the amount of buckets in the routing table
+    List<Bucket> bucketList;    // List of buckets (each Bucket contains a list of Node's)
 
-    int lengthOfNodeId; // determines the amount of buckets in the routing table
-    List<Bucket> bucketList; // List of buckets (each Bucket contains a list of Node's)
-
+    /**
+     * Constructor for a Routing table
+     * @param nodeId    Node id of owner of routing table
+     * @param ipAddr    Ip address of owner of routing table
+     * @param port      Port of owner of routing table
+     */
     RoutingTable(String nodeId,String ipAddr, int port){
         this.nodeId = nodeId;
         this.ipAddr = ipAddr;
@@ -25,6 +29,7 @@ public class RoutingTable implements Serializable {
         initializeBucketList(lengthOfNodeId);
     }
 
+    /* Auxiliar methods */
 
     /**
      * Initializes the bucket list with given number of bucket
@@ -147,7 +152,6 @@ public class RoutingTable implements Serializable {
         return closestBucket.removeNode(n);
     }
 
-
     /**
      * Calculates XOR between this node Id and the node id of target
      * @param targetNodeId node id of target
@@ -183,10 +187,14 @@ public class RoutingTable implements Serializable {
         return result.toString();
     }
 
+    /**
+     * Turns a given String in binary and computes the respective decimal value
+     * @param binaryString String in binary format
+     * @return             Decimal value of given binary String
+     */
     public  int binaryToDecimal(String binaryString) {
         return Integer.parseInt(binaryString, 2);
     }
-
 
     /**
      * Method that receives a map and returns a map that is sorted by Ascending order

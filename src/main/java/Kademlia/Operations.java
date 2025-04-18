@@ -25,47 +25,50 @@ public class Operations {
     }
 
     /**
-     * Sends a {@code PING} request from the {@code senderNode} to the {@code targetNode} to check if it is alive.
+     * Sends a {@code PING} request from the {@code senderNode} to the {@code targetNode}
+     * using cryptographic credentials from the specified {@code miner} to verify the target node's availability.
      *
-     * <p>This method is used in Kademlia to verify the liveness of a node and ensure it is still reachable.
-     * The target node should respond with any non-null response if it is active. If no response is received,
-     * the node is considered unreachable and may eventually be removed from the routing table.
+     * <p>This method is part of the Kademlia protocol and is used to check if a node is still alive and reachable.
+     * A {@code PING} message is sent containing a secure payload signed with the miner's keys.
+     * If the target node responds with a non-null message, it is considered alive; otherwise, it is deemed unreachable
+     * and may be subject to removal from the routing table.
+     * </p>
      *
-     * @param senderNode the node initiating the PING
+     * @param senderNode the node initiating the PING request
      * @param targetNode the node being pinged
-     * @return {@code true} if a response is received (node is alive), {@code false} otherwise
+     * @param miner      the miner whose public and private keys are used to sign the message
+     * @return           {@code true} if a response is received (indicating the target node is alive),
+     *                   {@code false} otherwise
      */
     public static boolean ping(Node senderNode,Node targetNode,Miner miner){
         String targetHost = targetNode.getIpAddr();
         int targerPort = targetNode.getPort();
         SecureMessage secureMessage =
                 new SecureMessage("PING",senderNode,miner.getPublicKey(),miner.getPrivateKey());
-
         String response =
                 (String) PeerComunication.sendMessageToPeer(targetHost,targerPort,"PING",secureMessage);
-        if (response != null)
-            return true;
-        return false;
+
+        return response != null;
     }
 
     /**
-     * Performs the Kademlia {@code FIND_NODE} operation starting from a given {@code senderNode}
-     * and searching for nodes close to the {@code targetNodeId}.
+     * Executes the Kademlia {@code FIND_NODE} operation starting from the {@code senderNode},
+     * aiming to locate nodes that are closest to a given {@code targetNodeId}.
      *
-     * <p>The algorithm iteratively queries the routing tables of the closest known nodes to find
-     * the {@code k} nodes whose IDs are closest to the target. This process continues until
-     * no new closer nodes are discovered in an iteration.
-     *
-     * <p>Steps involved:
+     * <p>This method performs an iterative lookup using the sender's routing table and recursively
+     * queries known peers for nodes that are closer to the target ID. During each iteration:
      * <ol>
-     *   <li>Query the sender's routing table for the closest nodes to {@code targetNodeId}.
-     *   <li>Send {@code FIND_NODE} messages to those nodes and collect their responses.
-     *   <li>Repeat the process with any new nodes discovered, updating the sender's routing table.
-     *   <li>Terminate when no new nodes are found in an iteration.
+     *   <li>The sender node retrieves its current routing table via a secure message.
+     *   <li>It selects the {@code k} closest nodes to the target ID and sends {@code FIND_NODE} requests.
+     *   <li>Each response (if valid and signed correctly) returns additional nodes closer to the target.
+     *   <li>The process continues with newly discovered nodes until no closer nodes are found.
      * </ol>
      *
-     * @param senderNode the node initiating the FIND_NODE lookup
-     * @param targetNodeId the ID of the node we are trying to locate
+     * <p>All discovered nodes are used to update the sender's routing table once the lookup concludes.
+     * Messages are verified using cryptographic signatures to ensure integrity and authenticity.
+     *
+     * @param senderNode   the node initiating the {@code FIND_NODE} operation
+     * @param targetNodeId the ID of the node being searched for (can be any valid Kademlia node ID)
      */
     public static void findNode(Node senderNode, String targetNodeId){
         // Contains all nodes received in FIND_NODE response
@@ -73,16 +76,16 @@ public class Operations {
         int newNodes;
         int i = 1;
 
+        String senderIp = senderNode.getIpAddr();
+        int senderPort = senderNode.getPort();
+
         // Do the FIND_NODE iteration process until no new nodes are discovered
         while (true) {
-            if (
-                    PeerComunication.sendMessageToPeer(
-                            senderNode.getIpAddr(),senderNode.getPort(),
-                            "GET_ROUTING_TABLE",null)
-                    instanceof SecureMessage routingSecureMessage
-                            && routingSecureMessage.verifySignature()
-                            && routingSecureMessage.getPayload() instanceof  RoutingTable senderRoutingTable
-                            && checkNodeId(routingSecureMessage,senderNode)
+            if (PeerComunication.sendMessageToPeer( senderIp, senderPort, "GET_ROUTING_TABLE", null )
+                        instanceof SecureMessage routingSecureMessage
+                && routingSecureMessage.verifySignature()
+                && routingSecureMessage.getPayload() instanceof RoutingTable senderRoutingTable
+                && checkNodeId( routingSecureMessage, senderNode )
                 )
             {
                 System.out.println("=====FIND_NODE Iteration [" + i + "]=====");
@@ -94,9 +97,9 @@ public class Operations {
                 for (Node n : senderClosestNodes) {
 
                     if (PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "FIND_NODE", targetNodeId)
-                            instanceof SecureMessage findSecureMessage &&
-                            findSecureMessage.verifySignature() &&
-                            checkNodeId(findSecureMessage,n)
+                            instanceof SecureMessage findSecureMessage
+                        && findSecureMessage.verifySignature()
+                        && checkNodeId(findSecureMessage,n)
                     )
                     {
                         List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
@@ -131,76 +134,71 @@ public class Operations {
     /**
      * Allows a node {@code joiningNode} to join a Kademlia network using a known {@code bootstrap} node.
      *
-     * <p>The joining process involves three main steps:
+     * <p>The join process follows these main steps:
      * <ol>
-     *   <li>Query the bootstrap node to retrieve the {@code k} closest nodes to {@code joiningNode},
-     *       and update the {@code joiningNode}'s routing table with those nodes.</li>
-     *   <li>Add {@code joiningNode} to the bootstrap node's routing table.</li>
-     *   <li>Notify all nodes returned by the bootstrap node of the new {@code joiningNode},
-     *       allowing them to update their routing tables accordingly.</li>
+     *   <li>Contact the {@code bootstrap} node via {@code FIND_NODE} to retrieve the {@code k} closest nodes
+     *       to the {@code joiningNode}, and update the {@code joiningNode}'s routing table.</li>
+     *   <li>Synchronize local data: retrieve the bootstrap node’s storage and blockchain, reset the local versions
+     *       on the {@code joiningNode}, and apply the received data.</li>
+     *   <li>Add the {@code joiningNode} to the bootstrap's routing table via {@code ADD_PEER}.</li>
+     *   <li>Notify all {@code k} closest nodes about the new {@code joiningNode} to allow them to update
+     *       their routing tables.</li>
      * </ol>
-     * </p>
      *
-     * <p>Additionally, the {@code joiningNode} retrieves the local storage from the bootstrap node
-     * to initialize its own storage.
-     * </p>
+     * <p>All communication is performed using secure messages with signature verification to ensure authenticity
+     * and prevent tampering.
      *
      * @param joiningNode the node that wants to join the network
-     * @param bootstrap the bootstrap node already present in the network
+     * @param bootstrap   the bootstrap node already present in the network
      *
      * @implNote The value of {@code k} (the number of closest nodes to retrieve) should be sufficiently large
      *           to ensure the joining node is properly advertised to all relevant peers.
      */
     public static void joinNetwork(Node joiningNode, Node bootstrap){
         System.out.println("=====JOIN NETWORK Iteration [0]=====");
-        if (PeerComunication.sendMessageToPeer(bootstrap.getIpAddr(), bootstrap.getPort(), "FIND_NODE", joiningNode.getNodeId())
-                instanceof SecureMessage findSecureMessage &&
-                findSecureMessage.verifySignature() &&
-                checkNodeId(findSecureMessage,bootstrap)
+        String bootstrapIp = bootstrap.getIpAddr();
+        int bootstrapPort = bootstrap.getPort();
+        String joiningId = joiningNode.getNodeId();
+        String joiningIp = joiningNode.getIpAddr();
+        int joiningPort = joiningNode.getPort();
+
+        if (PeerComunication.sendMessageToPeer(bootstrapIp,bootstrapPort, "FIND_NODE", joiningId)
+                instanceof SecureMessage findSecureMessage
+            && findSecureMessage.verifySignature()
+            && checkNodeId(findSecureMessage,bootstrap)
         ) {
 
             List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
             updatePeerRoutingInfo(joiningNode, kClosestNodes);
 
-            if (PeerComunication.sendMessageToPeer(
-                    bootstrap.getIpAddr(), bootstrap.getPort(), "GET_STORAGE", null)
+            if (PeerComunication.sendMessageToPeer(bootstrapIp, bootstrapPort, "GET_STORAGE", null)
                     instanceof SecureMessage storageSecureMessage
-                    && storageSecureMessage.verifySignature()
-                    && checkNodeId(storageSecureMessage,bootstrap)
+                && storageSecureMessage.verifySignature()
+                && checkNodeId(storageSecureMessage,bootstrap)
             ) {
 
                 // update joining nodes local storage with local storage of k closest nodes
-                PeerComunication.sendMessageToPeer(
-                        joiningNode.getIpAddr(), joiningNode.getPort(), "RESET_STORAGE", null);
+                PeerComunication.sendMessageToPeer(joiningIp, joiningPort, "RESET_STORAGE", null);
                 Map<String, Block> bootstrapStorage = (Map<String, Block>) storageSecureMessage.getPayload();
                 updatePeerStorageInfo(joiningNode, bootstrapStorage);
 
-                PeerComunication.sendMessageToPeer(
-                        bootstrap.getIpAddr(), bootstrap.getPort(), "ADD_PEER", joiningNode);
+                PeerComunication.sendMessageToPeer(bootstrapIp, bootstrapPort, "ADD_PEER", joiningNode);
                 System.out.println("Closest Nodes to [" + joiningNode + "] =" + kClosestNodes);
                 System.out.println("====================================");
 
                 // Update joining node blockchain with bootstraps blockchain
-                PeerComunication.sendMessageToPeer(
-                        joiningNode.getIpAddr(), joiningNode.getPort(), "RESET_BLOCKCHAIN", null);
+                PeerComunication.sendMessageToPeer(joiningIp, joiningPort, "RESET_BLOCKCHAIN", null);
 
-                if (PeerComunication.sendMessageToPeer(
-                                bootstrap.getIpAddr(),bootstrap.getPort(),"GET_BLOCKCHAIN",null)
+                if (PeerComunication.sendMessageToPeer(bootstrapIp, bootstrapPort,"GET_BLOCKCHAIN",null)
                                 instanceof  Blockchain bootstrapBlockchain)
                 {
                     updatePeerBlockchain(joiningNode, bootstrapBlockchain);
                 }
 
-
-
                 System.out.println("=====JOIN NETWORK Iteration [2]=====");
                 for (Node n : kClosestNodes)
                     updatePeerRoutingInfo(n, new ArrayList<>(Arrays.asList(joiningNode)));
                 System.out.println("====================================");
-
-
-
-
             }
             else {
                 System.out.println("[GET_STORAGE] Error ocurred in joinNetwork (could be because" +
@@ -213,28 +211,27 @@ public class Operations {
     }
 
     /**
-     * Performs the FIND_VALUE operation in the Kademlia network.
-     * <p>
-     * This method attempts to locate the value (a {@link Block}) associated with the provided key.
-     * It starts by generating the key ID (based on the key string), and then uses the sender node's
-     * routing table to find the closest known nodes to that key.
-     * </p>
+     * Executes the Kademlia {@code FIND_VALUE} operation to search for a {@link Block} associated with the given {@code key}.
      *
-     * <p>
-     * The method iteratively queries unqueried closest nodes, asking each one for the value.
-     * If a node returns the value, it is immediately returned and also stored locally at the sender node
-     * for future lookups. If the value is not found, and no new nodes are discovered, the search ends
-     * unsuccessfully.
-     * </p>
+     * <p>This method initiates the lookup from the {@code senderNode}, generating a key ID from the input key and
+     * using the node's routing table to identify the closest known peers. It then iteratively queries these nodes
+     * for the value:</p>
      *
-     * <p>
-     * This implementation assumes a broadcast-style network where the initial routing table
-     * returns all nodes in the network, as per a simplified Kademlia variant.
-     * </p>
+     * <ol>
+     *   <li>If a node responds with the associated {@link Block}, the search ends successfully and the block is returned.</li>
+     *   <li>If a node instead returns a list of closer nodes, the search continues recursively with those new nodes.</li>
+     *   <li>All communications are verified via secure messages with signature checking to ensure authenticity.</li>
+     *   <li>If the value is found, it is also stored locally in the {@code senderNode} using the given {@code miner}'s keys.</li>
+     *   <li>The process terminates when no new nodes are discovered or a value is found.</li>
+     </ol>
      *
-     * @param senderNode The node initiating the FIND_VALUE operation.
-     * @param key        The key associated with the value being searched.
-     * @return The {@link Block} value if found, or {@code null} if not found in the network.
+     * <p>This implementation assumes a simplified broadcast-style routing behavior where the full routing table is accessible
+     * during each iteration.</p>
+     *
+     * @param senderNode the node initiating the {@code FIND_VALUE} operation
+     * @param key        the key associated with the value to be located in the network
+     * @param miner      the miner whose cryptographic keys are used to sign and validate data storage operations
+     * @return           the {@link Block} if found; {@code null} if the value is not present in the network
      */
     public static Block findValue(Node senderNode, String key,Miner miner) {
         String keyId = CryptoUtils.generateKeyId(key);
@@ -242,18 +239,18 @@ public class Operations {
         Set<Node> discoveredNodes = new HashSet<>();
         int i = 1;
 
+        String senderIp = senderNode.getIpAddr();
+        int senderPort = senderNode.getPort();
+
         while (true) {
             if (
-                    PeerComunication.sendMessageToPeer(
-                            senderNode.getIpAddr(), senderNode.getPort(), "GET_ROUTING_TABLE", null
-                    ) instanceof SecureMessage routingSecureMessage
+                    PeerComunication.sendMessageToPeer(senderIp, senderPort, "GET_ROUTING_TABLE", null)
+                            instanceof SecureMessage routingSecureMessage
                     && routingSecureMessage.verifySignature()
                     && routingSecureMessage.getPayload() instanceof RoutingTable senderRoutingTable
                     && checkNodeId(routingSecureMessage,senderNode)
-
             ) {
                 System.out.println("===== FIND_VALUE Iteration [" + i + "] =====");
-
                 List<Node> toQuery = senderRoutingTable.getClosestNodes(Constants.MAX_RETURN_FIND_NODES, keyId);
                 int newNodes = 0;
 
@@ -264,18 +261,16 @@ public class Operations {
                         Object response = PeerComunication.sendMessageToPeer(node.getIpAddr(), node.getPort(),
                                 "FIND_VALUE", keyId);
 
-                        if (response instanceof SecureMessage secureMessage
+                        if (
+                                response instanceof SecureMessage secureMessage
                                 && secureMessage.verifySignature()
                                 && checkNodeId(secureMessage,node)
-                        )
-                        {
-                            if(secureMessage.getPayload() instanceof Block foundValue &&
-                                    foundValue != null) {
-                                System.out.printf("Value found in [%s,%s,%s]\n"
-                                        , node.getNodeId(), node.getIpAddr(), node.getPort());
+                        ) {
+                            if(secureMessage.getPayload() instanceof Block foundValue
+                               && foundValue != null) {
+                                System.out.printf("Value found in [%s,%s,%s]\n", node.getNodeId(), node.getIpAddr(), node.getPort());
                                 // Tries to add to sender local storage
                                 Operations.store(senderNode, key, foundValue,miner);
-
 
                                 System.out.println("==================================");
                                 return foundValue;
@@ -321,9 +316,14 @@ public class Operations {
      * the value should be stored in the network.
      * </p>
      *
+     * <p>The value is encapsulated in a {@link BlockKeyWrapper}, and a {@link SecureMessage} is created
+     * using the {@code miner}'s public and private keys. The message is then securely sent to each of
+     * the closest nodes for storage.</p>
+     *
      * @param senderNode The node initiating the STORE operation.
      * @param key        The string key to be used for identifying the value (in this case the blockhash).
      * @param value      The value (a Block) to be stored in the network.
+     *  @param miner     The {@link Miner} whose keys are used to sign the storage messages securely
      *
      * @note This implementation follows a broadcast-style STORE. We assume that the {@code FIND_NODE}
      *       performed from the senderNode returns all nodes in the network (i.e., the {@code kClosestNodes}
@@ -333,20 +333,17 @@ public class Operations {
     public static void store (Node senderNode, String key, Block value, Miner miner){
         String keyId =  CryptoUtils.generateKeyId(key);
         System.out.println("Key Id = " + keyId);
+        String senderIp = senderNode.getIpAddr();
+        int senderPort = senderNode.getPort();
 
         // Get the k closest Nodes  to keyId (from sender Node)
-
         if (
-                PeerComunication.sendMessageToPeer(
-                        senderNode.getIpAddr(), senderNode.getPort(),
-                        "FIND_NODE",keyId
-                ) instanceof  SecureMessage findSecureMessage
+                PeerComunication.sendMessageToPeer(senderIp, senderPort, "FIND_NODE",keyId )
+                        instanceof  SecureMessage findSecureMessage
                 && findSecureMessage.verifySignature()
                 && checkNodeId(findSecureMessage,senderNode)
         ){
             List<Node> kClosestNodes = (List<Node>) findSecureMessage.getPayload();
-
-
 
             // Wraps the Key and Block in a  wrapper class (a.k.a. BlockKeyWrapper)
             BlockKeyWrapper blockKeyWrapper = new BlockKeyWrapper(keyId,value);
@@ -354,22 +351,13 @@ public class Operations {
             // Store the <Key,Value> pair in those KClosestNodes
             for (Node n : kClosestNodes){
                 SecureMessage storeSecureMessage =
-                        new SecureMessage("STORE",blockKeyWrapper,
-                                miner.getPublicKey(),miner.getPrivateKey());
-
-                //PeerComunication.sendMessageToPeer(
-                //        n.getIpAddr(),n.getPort(),"STORE",blockKeyWrapper
-                //);
-                PeerComunication.sendMessageToPeer(
-                        n.getIpAddr(),n.getPort(),"STORE",storeSecureMessage
-                );
+                        new SecureMessage("STORE", blockKeyWrapper, miner.getPublicKey(), miner.getPrivateKey());
+                PeerComunication.sendMessageToPeer(n.getIpAddr(),n.getPort(),"STORE",storeSecureMessage );
             }
-
         }else {
             System.out.println("Error ocurred in STORE (could be because" +
                     "of message signature or comunication error) ");
         }
-
     }
 
     /**
@@ -406,6 +394,15 @@ public class Operations {
         }
     }
 
+    /**
+     * Updates the blockchain of a certain Peer
+     *
+     * @param targetNode  Node/Peer that we are going to send the blockchain
+     * @param blockchain  blockchain that will be used to update Peer
+     *
+     * @note we only use this method when a node first joins a network (when this happens the joining node resets
+     *       the blockchain and the local storage)
+     */
     private static void updatePeerBlockchain (Node targetNode, Blockchain blockchain){
         for(Block b : blockchain.getBlockchain()){
             System.out.println(
@@ -416,6 +413,22 @@ public class Operations {
         }
     }
 
+    /**
+     * Verifies the authenticity of a {@link Node}'s claimed ID by comparing it to the computed ID derived
+     * from the public key included in the received {@link SecureMessage}.
+     *
+     * <p>This method is used as a security check to ensure that the {@code Node} claiming to have a certain
+     * {@code nodeId} is actually the legitimate owner of that identity, based on its public key.</p>
+     *
+     * <p>The node ID is recomputed using {@link CryptoUtils#generateSecureNodeId(PublicKey)} from the
+     * sender's public key included in the {@code SecureMessage}, and compared against the ID reported
+     * by the node {@code n}.</p>
+     *
+     * @param secureMessage the message containing the sender's public key
+     * @param n             the node whose claimed ID will be validated
+     * @return              {@code true} if the node's claimed ID matches the computed ID from the public key,
+     *                      {@code false} otherwise
+     */
     public static boolean checkNodeId(SecureMessage secureMessage, Node n) {
         PublicKey pubKey = secureMessage.getSenderPublickKey();
         String claimedNodeId = n.getNodeId();
@@ -425,6 +438,4 @@ public class Operations {
         System.out.println("Node id is valid? : " + claimedNodeId.equals(computedNodeId));
         return claimedNodeId.equals(computedNodeId);
     }
-
-
 }
