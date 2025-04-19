@@ -14,7 +14,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Logger; /**
+import java.util.logging.Logger;
+/**
  * Server class that handles client requests
  */
 public class Server implements Runnable {
@@ -45,7 +46,7 @@ public class Server implements Runnable {
      * @param logger         the logger instance for logging messages
      * @param peer           the peer instance associated with this server
      * @param bootstrapNodes a list of bootstrap nodes to initialize the network
-     * @throws Exception if an error occurs while setting up the server socket
+     * @throws Exception     if an error occurs while setting up the server socket
      */
     public Server(String host, int port, Logger logger, Peer peer, ArrayList<Node> bootstrapNodes) throws Exception {
         this.host = host;
@@ -95,7 +96,7 @@ public class Server implements Runnable {
      * --> list of kneigbours
      * --> routing table
      * @param n node we want to add to list of kneigbours and routing table
-     * @return True if we added the node to list of kneigbours  and routing table.False otherwise
+     * @return  True if we added the node to list of kneigbours  and routing table.False otherwise
      */
     public boolean addNeighbour(Node n){
         boolean a = true;
@@ -121,7 +122,7 @@ public class Server implements Runnable {
      * --> list of kneigbours
      * --> routing table
      * @param n node we want to remove from list of kneigbours and routing table
-     * @return True if we removed the node from list of kneigbours  and routing table.False otherwise
+     * @return  True if we removed the node from list of kneigbours  and routing table.False otherwise
      */
     public boolean removeNeighbour(Node n){
         boolean a = false;
@@ -135,10 +136,6 @@ public class Server implements Runnable {
         }
 
         boolean b = kademliaNode.getRoutingTable().removeNodeFromBucketList(n);
-        //if (a && b) {
-        //    return true;
-        // }
-        //return false;
         return a && b;
     }
 
@@ -175,8 +172,7 @@ public class Server implements Runnable {
     }
 
     /* Getter's */
-
-    public Miner getMiner() {
-        return miner;
-    }
+    //public Miner getMiner() {
+    //    return miner;
+    //}
 }

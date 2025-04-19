@@ -28,7 +28,6 @@ public class ClientHandler implements Runnable {
     Node kademliaNode;
     ArrayList<Transaction> transactionsPool;
 
-
     public ClientHandler(Socket client, Server server, Logger logger) {
         this.client = client;
         this.server = server;
@@ -38,7 +37,6 @@ public class ClientHandler implements Runnable {
         this.transactionsPool = server.transactionsPool;
         this.logger = logger;
     }
-
 
     @Override
     public void run() {
@@ -156,11 +154,14 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Stores a received block in the local Kademlia node's storage.
+     */
     private void addToStorageHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         logger.info("Received Add to 'kademlia' node's Storage");
-        try {
-
-            synchronized (kademliaNode) {
+        // Syncronize on kademlia Node to avoid race conditions between threads
+        synchronized (kademliaNode) {
+            try {
                 clientOut.writeObject("OK from @ " + server.host + " " + server.port);
                 clientOut.flush();
 
@@ -169,37 +170,34 @@ public class ClientHandler implements Runnable {
                 if (receivedObject instanceof Block b ){
                     logger.info("Received Block to add to 'kademlia' node's Storage = [" + b.getBlockHash() + "]");
                     String keyId = CryptoUtils.generateKeyId(b.getBlockHash());
-
                     kademliaNode.addToLocalStorage(keyId,b);
                     clientOut.writeObject("Updated Kademlia Node storage \n:" + kademliaNode.getLocalStorage());
                 }else {
                     clientOut.writeObject("Error: Expected Block but received something else");
                     logger.warning("Error: Did not receive a Block (addToStorageHandler)");
-
                 }
             }
-        }catch (Exception e){
-            logger.severe("Error ocured (addToStorageHandler)");
-
+            catch (Exception e){
+                logger.severe("Error ocured (addToStorageHandler)");
+            }
         }
-    
     }
 
+    /**
+     * Resets the local Kademlia node's storage.
+     */
     private  void  resetStorageHandler(ObjectOutputStream clientOut){
+        // Syncronize on kademlia Node to avoid race conditions between threads
         synchronized (kademliaNode){
             try {
                 logger.info("Going to reset node's storage...");
-
                 kademliaNode.getLocalStorage().clear();
-
                 if (kademliaNode.getLocalStorage().isEmpty())
                     logger.info("Storage of node " + kademliaNode.getIpAddr() + ":" + kademliaNode.getPort() + " was RESET!");
                 else
                     logger.severe("Storage of node " + kademliaNode.getIpAddr() + ":" + kademliaNode.getPort() + " was NOT RESET!");
-
                 clientOut.writeObject("OK");
                 clientOut.flush();
-
             }catch (Exception e){
                 logger.severe("Error ocured (resetStorageHandler)");
             }
@@ -207,86 +205,80 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     *
-     * @param clientIn
-     * @param clientOut
+     * Handles a FIND_NODE request and responds with the closest known nodes.
      */
     private void findNodeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        logger.info("Received Find Node message");
-        try {
-            // Syncronize on kademlia Node to avoid race conditions between threads
-            synchronized (kademliaNode) {
-                clientOut.writeObject("OK from @ " + server.host + " " + server.port);
+        // Syncronize on kademlia Node to avoid race conditions between threads
+        synchronized (kademliaNode) {
+            try {
+                logger.info("Received Find Node message");
+                clientOut.writeObject( "OK from @ " + server.host + " " + server.port );
                 clientOut.flush();
 
                 Object receivedObject = clientIn.readObject();
 
-                if (receivedObject instanceof String targetNodeId){
-                    logger.info("Receive FIND_NODE(" + targetNodeId + ")");
+                if (receivedObject instanceof String targetNodeId) {
+                    logger.info( "Receive FIND_NODE(" + targetNodeId + ")" );
                     List<Node> kClosestNodes =
-                            kademliaNode.getRoutingTable().getClosestNodes(Constants.MAX_RETURN_FIND_NODES,targetNodeId);
+                            kademliaNode.getRoutingTable().getClosestNodes( Constants.MAX_RETURN_FIND_NODES, targetNodeId );
 
-                    SecureMessage secureMessage = new SecureMessage("FIND_NODE",kClosestNodes
-                            ,miner.getPublicKey(),miner.getPrivateKey());
+                    SecureMessage secureMessage = new SecureMessage( "FIND_NODE", kClosestNodes
+                            , miner.getPublicKey(), miner.getPrivateKey() );
 
-                    //clientOut.writeObject(kClosestNodes);
-                    clientOut.writeObject(secureMessage);
-
-                }else {
-                    clientOut.writeObject("Error: Expected Node Id but received something else");
-                    logger.warning("Error: Did not receive a Node Id (findNodeHandler)");
+                    clientOut.writeObject( secureMessage );
+                } else {
+                    clientOut.writeObject( "Error: Expected Node Id but received something else" );
+                    logger.warning( "Error: Did not receive a Node Id (findNodeHandler)" );
                 }
+            } catch (Exception e) {
+                logger.severe("Error ocured (findNodeHandler)");
             }
-        } catch (Exception e) {
-            logger.severe("Error ocured (findNodeHandler)");
-        }
-    }
-
-    private void findValueHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        logger.info("Received Find Value message");
-        try {
-            // Syncronize on kademlia Node to avoid race conditions between threads
-            synchronized (kademliaNode){
-                clientOut.writeObject("OK");
-                clientOut.flush();
-
-                Object receivedObject = clientIn.readObject();
-
-                if (receivedObject instanceof String keyId){
-                    Block b = kademliaNode.getValue(keyId);
-                    if (b != null){
-                        logger.info("Value found in local storage");
-                        SecureMessage secureMessage =
-                                new SecureMessage("FIND_VALUE",b,
-                                        miner.getPublicKey(),miner.getPrivateKey());
-                        clientOut.writeObject(secureMessage);
-                        //clientOut.writeObject(b);
-                    }
-                    else {
-                        logger.warning("Value not found in local storage");
-                        List<Node>  closestNodestoKey =
-                            kademliaNode.getRoutingTable().getClosestNodes
-                                    (Constants.MAX_ROUTING_FIND_NODES,keyId);
-                        SecureMessage secureMessage =
-                                new SecureMessage("FIND_VALUE",closestNodestoKey,
-                                        miner.getPublicKey(),miner.getPrivateKey());
-                        clientOut.writeObject(secureMessage);
-                        //clientOut.writeObject(closestNodestoKey);
-                    }
-                }else{
-                    clientOut.writeObject("Error: Expected String but received something else");
-                    logger.warning("Error: Did not receive a String (findValueHandler)");
-                }
-            }
-        }catch (Exception e){
-            logger.severe("Error ocured (findValueHandler)");
         }
     }
 
     /**
-     *
-     * @param clientIn
-     * @param clientOut
+     * Handles a FIND_VALUE request, returning the value or closest nodes.
+     */
+    private void findValueHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
+        // Syncronize on kademlia Node to avoid race conditions between threads
+        synchronized (kademliaNode) {
+            try {
+                logger.info("Received Find Value message");
+                clientOut.writeObject( "OK" );
+                clientOut.flush();
+
+                Object receivedObject = clientIn.readObject();
+
+                if (receivedObject instanceof String keyId) {
+                    Block b = kademliaNode.getValue( keyId );
+                    if (b != null) {
+                        logger.info( "Value found in local storage" );
+                        SecureMessage secureMessage =
+                                new SecureMessage( "FIND_VALUE", b,
+                                        miner.getPublicKey(), miner.getPrivateKey() );
+                        clientOut.writeObject( secureMessage );
+                    } else {
+                        logger.warning( "Value not found in local storage" );
+                        List<Node> closestNodestoKey =
+                                kademliaNode.getRoutingTable().getClosestNodes
+                                        ( Constants.MAX_ROUTING_FIND_NODES, keyId );
+                        SecureMessage secureMessage =
+                                new SecureMessage( "FIND_VALUE", closestNodestoKey,
+                                        miner.getPublicKey(), miner.getPrivateKey() );
+                        clientOut.writeObject( secureMessage );
+                    }
+                } else {
+                    clientOut.writeObject( "Error: Expected String but received something else" );
+                    logger.warning( "Error: Did not receive a String (findValueHandler)" );
+                }
+            } catch (Exception e){
+                logger.severe("Error ocured (findValueHandler)");
+            }
+        }
+    }
+
+    /**
+     * Handles a PING request to verify node liveness and identity.
      */
     private void pingHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         try{
@@ -296,12 +288,11 @@ public class ClientHandler implements Runnable {
 
             Object receivedObject = clientIn.readObject();
 
-
-            if (receivedObject instanceof  SecureMessage secureMessage &&
-                    secureMessage.verifySignature() &&
-                    secureMessage.getPayload() instanceof Node n &&
-                    Operations.checkNodeId(secureMessage, n)
-            ){
+            if (receivedObject instanceof  SecureMessage secureMessage
+                && secureMessage.verifySignature()
+                && secureMessage.getPayload() instanceof Node n
+                && Operations.checkNodeId(secureMessage, n))
+            {
                 logger.info("Received Ping from " + n);
                 clientOut.writeObject("OK");
             }else {
@@ -313,11 +304,14 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Handles a STORE request to save a key-value pair in the local storage.
+     */
     private void storeHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        logger.info("Received Store <Key,Value> message");
         // Syncronize on kademliaNode to avoid race conditions between threads
         synchronized (kademliaNode){
             try {
+                logger.info("Received Store <Key,Value> message");
                 clientOut.writeObject("Ok");
                 clientOut.flush();
 
@@ -325,7 +319,8 @@ public class ClientHandler implements Runnable {
 
                 if (receivedObject instanceof SecureMessage secureMessage
                         && secureMessage.verifySignature()
-                        && secureMessage.getPayload() instanceof BlockKeyWrapper blockKeyWrapper){
+                        && secureMessage.getPayload() instanceof BlockKeyWrapper blockKeyWrapper)
+                {
                     logger.info("Received Key/Block to Store");
 
                     kademliaNode.storeKeyValuePair(
@@ -336,7 +331,6 @@ public class ClientHandler implements Runnable {
                     clientOut.writeObject("Error: could be caused by bad signature or other comunication error (storeHandler)");
                     logger.warning("Error: Did not receive a BlockKeyWrapper (storeHandler)");
                 }
-
             } catch (Exception e) {
                 logger.severe("Error ocured (storeHandler)");
             }
@@ -344,9 +338,7 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     *
-     * @param clientIn
-     * @param clientOut
+     * Handles the removal of a peer from the server’s known neighbors.
      */
     private void removePeerHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on server to avoid race conditions between threads
@@ -360,7 +352,6 @@ public class ClientHandler implements Runnable {
 
                 if (receivedObject instanceof Node n){
                     logger.info("Peer/Node we are going to remove " + n);
-                    //clientOut.writeObject("OK");
                     if (server.removeNeighbour(n))
                         clientOut.writeObject("OK");
                     else {
@@ -378,9 +369,7 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     *
-     * @param clientIn
-     * @param clientOut
+     * Handles the addition of a peer to the server’s known neighbors.
      */
     private void addPeerHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on server to avoid race conditions between threads
@@ -412,24 +401,24 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Handles the mining process and sends the result back to the client.
+     * Handles the mining process and communicates the result to the client.
      *
-     * <p>If there are not enough transactions in the pool to mine a block, an error message
-     * is sent to the client. Otherwise, a new block is mined using the current transactions,
-     * added to the blockchain (if valid), and broadcast to the network.</p>
+     * <p>If the transaction pool lacks sufficient transactions, an error message is sent.
+     * Otherwise, a new block is mined, validated, added to the blockchain, and propagated
+     * throughout the network.</p>
      *
      * <p>After successful mining:
      * <ul>
      *   <li>The transaction pool is cleared.</li>
-     *   <li>A "STOP" message is sent to all known neighbors to halt their mining processes.</li>
-     *   <li>An "ADD_MINED_BLOCK" message is sent so peers can update their blockchains.</li>
-     *   <li>A "STORE" operation is performed to replicate the block across the network.</li>
+     *   <li>A "STOP" message is sent to all neighbors to halt their mining threads.</li>
+     *   <li>An "ADD_MINED_BLOCK" message is sent to update their blockchains.</li>
+     *   <li>A "STORE" operation replicates the mined block across the network.</li>
      * </ul>
      *
-     * <p>This method synchronizes on the {@code transactionsPool} to prevent race conditions
+     * <p>This method synchronizes on the {@code transactionsPool} to avoid race conditions
      * in multi-threaded environments.</p>
      *
-     * @param clientOut the output stream used to communicate with the client
+     * @param clientOut the stream used to send responses to the client
      */
     private void mineHandler(ObjectOutputStream clientOut) {
         synchronized (transactionsPool) {
@@ -494,9 +483,7 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     *
-     * @param clientIn
-     * @param clientOut
+     * Handles the reception of a mined block from a peer and adds it to the blockchain.
      */
     private void addMinedBlockHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         // Syncronize on blockchain to avoid race conditions between threads
@@ -523,19 +510,18 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Handles the addition of a new transaction received from a client over a network stream.
+     * Handles the addition of a new transaction received from a client, validates it,
+     * and adds it to the transaction pool based on specific rules.
      * <p>
-     * This method reads a {@link Transaction} object sent by the client via {@link ObjectInputStream},
-     * validates it, and attempts to add it to the local transaction pool, {@code transactionsPool},
-     * based on specific rules:
+     * Valid transactions are added to {@code transactionsPool} if they meet the following criteria:
      * <ul>
-     *   <li>Only transactions deemed valid by {@code checkTransaction(t, t.getType())} are accepted.</li>
-     *   <li>If the transaction type is {@code PLACE_BID}, the pool must be empty (i.e., size &lt; 1) to accept it.</li>
-     *   <li>For other transaction types, the pool must have less than 3 transactions (i.e., size &lt; 3).</li>
+     *   <li>Transactions validated by {@code checkTransaction(t, t.getType())} are accepted.</li>
+     *   <li>If the transaction type is {@code PLACE_BID}, the pool must be empty (size < 1).</li>
+     *   <li>For other transaction types, the pool must contain less than 3 transactions (size < 3).</li>
      * </ul>
-     * The method is synchronized on {@code transactionsPool} to prevent race conditions between concurrent threads.
+     * The method synchronizes on {@code transactionsPool} to prevent race conditions.
      *
-     * @param clientIn the input stream of the client
+     * @param clientIn  the input stream of the client
      * @param clientOut the output stream of the client
      */
     private void addTransactionHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
@@ -564,8 +550,7 @@ public class ClientHandler implements Runnable {
                                 clientOut.writeObject("Not Ok: Please commit your local transactions " +
                                         "before placing a Bid or Closing an auction" +
                                         "\n(Please send Mine block --> press 4))");
-                            }
-                            else {
+                            } else {
                                 transactionsPool.add(t);
                                 clientOut.writeObject("OK");
                             }
@@ -580,6 +565,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Validates a transaction based on its type, checking auction start, stop, or bid placement conditions.
+     */
     private Boolean checkTransaction(Transaction t, Transaction.TransactionType type){
         Boolean ans = true;
         switch (type){
@@ -589,7 +577,6 @@ public class ClientHandler implements Runnable {
                 System.out.printf("Check START_AUCTION %s = %s\n",t.getAuctionId(),ans);
                 break;
             case CLOSE_AUCTION:
-                // TODO: enviar vencedor (i.e. cliente com > transação PLACE_BID desse auction  )
                 System.out.println("Received STOP_AUCTION");
                 ans = checkStopAuction(t);
                 // if close auction check was sucessfull (anounce winner)
@@ -618,8 +605,8 @@ public class ClientHandler implements Runnable {
      * duplicate {@code START_AUCTION} transactions for the same auction.
      * </p>
      * @param t The {@code START_AUCTION} transaction to validate.
-     * @return {@code true} if no auction with the same ID exists in the blockchain or transaction pool;
-     *         {@code false} otherwise.
+     * @return  {@code true} if no auction with the same ID exists in the blockchain or transaction pool;
+     *          {@code false} otherwise.
      * @note here we don't accept START_AUCTION transactions
      *       with the same auctionId, that means that a client
      *       can't start more than one auction with the
@@ -647,8 +634,8 @@ public class ClientHandler implements Runnable {
      * This ensures that an auction can only be stopped if it has already been started.
      *
      * @param t The {@code CLOSE_AUCTION} transaction to validate.
-     * @return {@code true} if a matching {@code START_AUCTION} transaction with the same auction ID
-     *         exists in the blockchain or transaction pool; {@code false} otherwise.
+     * @return  {@code true} if a matching {@code START_AUCTION} transaction with the same auction ID
+     *          exists in the blockchain or transaction pool; {@code false} otherwise.
      *
      * @note Only the user that made the {@code START_AUCTION} can {@code CLOSE_AUCTION}
      */
@@ -667,6 +654,9 @@ public class ClientHandler implements Runnable {
         return false;
     }
 
+    /**
+     * Resets the blockchain by clearing its contents and setting the last block to null.
+     */
     private void resetBlockchainHandler(ObjectOutputStream clientOut) {
         synchronized (blockchain){
             try{
@@ -685,6 +675,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Determines and announces the winner of an auction based on the highest bid.
+     */
     private void anounceAuctionWinner(String auctionId) {
         Set<String> bids = blockchain.getAllBids(auctionId);
         String highestBidder = null;
@@ -723,7 +716,7 @@ public class ClientHandler implements Runnable {
      * </ol>
      * </p>
      * @param t the {@link Transaction} representing the bid to be validated
-     * @return {@code true} if the bid is valid (auction exists and the bid is higher than any existing bid); {@code false} otherwise
+     * @return  {@code true} if the bid is valid (auction exists and the bid is higher than any existing bid); {@code false} otherwise
      */
     private Boolean checkPlaceBid(Transaction t) {
         String auctionId = t.getAuctionId();
@@ -789,6 +782,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Retrieves and sends all available bids for a specific auction to the client.
+     */
     private void getAvailableBids(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
         synchronized (blockchain){
             try{
@@ -882,7 +878,6 @@ public class ClientHandler implements Runnable {
                 SecureMessage secureMessage =
                         new SecureMessage("GET_STORAGE",kademliaNode.getLocalStorage(),
                                 miner.getPublicKey(),miner.getPrivateKey());
-                //clientOut.writeObject(kademliaNode.getLocalStorage());
                 clientOut.writeObject(secureMessage);
                 clientOut.flush();
             } catch (Exception e) {
@@ -919,7 +914,6 @@ public class ClientHandler implements Runnable {
                 SecureMessage secureMessage =
                         new SecureMessage("GET_ROUTING_TABLE",kademliaNode.getRoutingTable(),
                                 miner.getPublicKey(), miner.getPrivateKey());
-                //clientOut.writeObject(kademliaNode.getRoutingTable());
                 clientOut.writeObject(secureMessage);
                 clientOut.flush();
             }catch (Exception e){
@@ -927,6 +921,10 @@ public class ClientHandler implements Runnable {
             }
         }
     }
+
+    /**
+     * Sends the miner's information to the client.
+     */
     private void getMiner(ObjectOutputStream clientOut) {
         try{
             logger.info("Received GET_MINER");
@@ -938,6 +936,5 @@ public class ClientHandler implements Runnable {
             logger.severe("Error ocured (getServerObject)");
             e.printStackTrace();
         }
-
     }
 }

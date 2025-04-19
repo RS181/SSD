@@ -17,7 +17,6 @@ import java.util.Scanner;
  * so that he can use the system
  */
 public class Client {
-
     private final String username;
     private final String peerServerHost;
     private final int peerServerPort;
@@ -30,10 +29,10 @@ public class Client {
 
     private static String getOptionsMenu(){
         return "----------------------------------" + '\n' +
-                " 0 - Find Kademlia Node " + '\n' +
-                " 1 - Find Value" + '\n' +
-                " 2 - Ping" + '\n' +
-                " 3 - (Test) Store" + '\n' +
+                " 0 - NOT ASSIGNED " + '\n' +
+                " 1 - Find Kademlia Node " + '\n' +
+                " 2 - Find Value" + '\n' +
+                " 3 - Ping" + '\n' +
                 " 4 - Mine Block (a.k.a send to server's Blockchain)" + '\n' +
                 " 5 - Start Auction " + '\n' +
                 " 6 - Stop Auction" + '\n' +
@@ -55,7 +54,6 @@ public class Client {
             System.out.println("Usage: java Client <username> <peerServerHost> <peerServerPort>");
             return;
         }
-
         String username = args[0];
         String peerServerHost = args[1];
         int peerServerPort = Integer.parseInt(args[2]);
@@ -76,20 +74,20 @@ public class Client {
                 case "menu":
                     System.out.println(getOptionsMenu());
                     break;
-                case "0": // FIND_NODE
+                case "0":
+                    System.out.println("NOT ASSIGNED");
+                    break;
+                case "1": // FIND_NODE
                     findNodeHandler(scanner);
                     break;
-                case "1": // FIND_VALUE
+                case "2": // FIND_VALUE
                     findValueHandler(scanner);
                     break;
-                case "2": // PING
+                case "3": // PING
                     pingHandler(scanner);
                     break;
-                case "3": // STORE
-                    clientStoreHandler(scanner);
-                    break;
                 case "4": // Mine a block
-                    clientMineHandler(peerServerHost, peerServerPort);
+                    clientMineHandler();
                     break;
                 case "5": // Start auction
                     startAuctionHanlder(scanner);
@@ -136,7 +134,6 @@ public class Client {
                         //m.setPayload("dummy");
                         //System.out.println(m.verifySignature());
                     }
-
                     break;
                 case "exit": // Exit
                     end = true;
@@ -149,8 +146,6 @@ public class Client {
     }
 
     private void findNodeHandler(Scanner scanner) {
-        //TODO: ajustar isto para deixar mais claro se estamos a fazer
-        // um FIND_NODE ou JOIN_NETWORK
         System.out.println("Insert the Ip address for FIND_NODE");
         String ipAddr = scanner.nextLine();
         System.out.println("Insert the Port for FIND_NODE");
@@ -178,7 +173,8 @@ public class Client {
         if (
                 PeerComunication.sendMessageToPeer
                         (peerServerHost,peerServerPort,"GET_MINER",null)
-                instanceof SecureMessage serverSecureMessage && serverSecureMessage.verifySignature()
+                instanceof SecureMessage serverSecureMessage
+                && serverSecureMessage.verifySignature()
                 && serverSecureMessage.getPayload() instanceof Miner miner
         ) {
             Block value = Operations.findValue(sender, key,miner);
@@ -204,8 +200,9 @@ public class Client {
         if (
                 PeerComunication.sendMessageToPeer
                         (peerServerHost,peerServerPort,"GET_MINER",null)
-                        instanceof SecureMessage serverSecureMessage && serverSecureMessage.verifySignature()
-                        && serverSecureMessage.getPayload() instanceof Miner miner
+                        instanceof SecureMessage serverSecureMessage
+                && serverSecureMessage.verifySignature()
+                && serverSecureMessage.getPayload() instanceof Miner miner
         ) {
             Boolean pingWasSucessful = Operations.ping(sender,target,miner);
             if(pingWasSucessful)
@@ -219,47 +216,13 @@ public class Client {
             System.out.println("Error ocured in client (could be signature error or " +
                     "comunication error");
         }
-
-
     }
 
-    // NOTA: este método é só para realizar testes sobre operação STORE do kademlia
-    private void clientStoreHandler(Scanner scanner) {
-        // TODO : remover este métoodo
-        System.out.println("(Deprecated) This option is no longer available");
-        /*
-        System.out.println("Insert the name of action");
-        String auctionName = scanner.nextLine();
-        ArrayList<Transaction> startAuction = new ArrayList<>();
-        startAuction.add(new Transaction("user1","user1", Transaction.TransactionType.START_AUCTION,
-                auctionName, 0, System.currentTimeMillis()));
-        // No need to mine, because we are just using this for test purposes
-        Block value = new Block(startAuction,"");
-        String key = value.getBlockHash();
-        Node sender = new Node(peerServerHost,peerServerPort,false);
-        System.out.println("The key values is : " + key);
-        Operations.store(sender,key,value);
-         */
-    }
-
-
-
-    private static void clientMineHandler(String peerServerHost, int peerServerPort) {
+    private  void clientMineHandler() {
         System.out.println("Waiting for Response from Peer Server...");
         System.out.println("Peer Server Response: " + PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"MINE",null));
     }
 
-    /*
-    private static void createAuctionHandler(Scanner scanner, String username, String peerServerHost, int peerServerPort) {
-        System.out.println("Insert a name for the auction you want to Start");
-        String auctionName= scanner.nextLine();
-        Transaction createAuction =
-                new Transaction(username, Transaction.TransactionType.CREATE_AUCTION,
-                        auctionName,0,new Date().getTime());
-        System.out.println("Waiting for Response from Peer Server...");
-        System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",createAuction));
-    }
-     */
     private void startAuctionHanlder(Scanner scanner) {
         System.out.println("Insert the name for the auction you want to Create and Start");
         String auctionName = scanner.nextLine();
@@ -293,9 +256,9 @@ public class Client {
         Transaction placeBid =
                 new Transaction(auctionOwner,username ,Transaction.TransactionType.PLACE_BID,
                         auctionName,bidAmount,new Date().getTime());
+
         System.out.println("Waiting for Response from Peer Server...");
         System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",placeBid));
-
     }
 
     private void checkBidsHandler(Scanner scanner) {
@@ -303,7 +266,6 @@ public class Client {
         String auctionOwner = scanner.nextLine();
         System.out.println("Insert the name for the auction you want to check Bids");
         String auctionName = scanner.nextLine();
-
         String auctionId = auctionOwner +  ":" + auctionName;
 
         System.out.println(
@@ -311,5 +273,4 @@ public class Client {
                         peerServerHost, peerServerPort,"GET_PLACED_BIDS",auctionId)
         );
     }
-
 }

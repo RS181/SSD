@@ -10,12 +10,13 @@ import java.net.Socket;
 public class PeerComunication {
     /**
      * Sends a string with a certain message type, and possiblily an object, to a Peer's Server
-     * @param serverHost Hostname of Peer server we are going to send message
-     * @param serverPort Port of Peer server we are going to send message
-     * @param messageType can have multiple values (TODO: colocar os valores que pode ter)
-     * @param object  if it is null we are not sending anything to Peer's Server.Otherwise, we
-     *                send the object.
-     * @return an object that contains response from Peer Server (either 'OK' or 'Error' message)
+     *
+     * @param serverHost  Hostname of Peer server we are going to send message
+     * @param serverPort  Port of Peer server we are going to send message
+     * @param messageType can have multiple values
+     * @param object      if it is null we are not sending anything to Peer's Server.Otherwise, we
+     *                    send the object.
+     * @return            an object that contains response from Peer Server (either 'OK' or 'Error' message)
      */
     public static Object sendMessageToPeer (String serverHost,int serverPort,Object messageType, Object object){
         Object peerResponse = null;
@@ -60,8 +61,6 @@ public class PeerComunication {
             }
 
             socket.close();
-
-
 
         }catch (Exception e){
             System.out.println("Server @ " +serverPort + " failed to connect." );

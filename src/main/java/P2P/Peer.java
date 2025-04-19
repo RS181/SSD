@@ -13,12 +13,13 @@ import java.nio.file.*;
 import java.util.Base64;
 
 /**
- * Class that represents a Peer in our project.
- * A peer contains:
- * --> Server thread that handles client request
- * --> Blockchain
- * --> Miner
- * --> Kademlia Node
+ * Represents a Peer in the network. A peer contains:
+ * <ul>
+ *   <li>A server thread that handles client requests.</li>
+ *   <li>A blockchain instance.</li>
+ *   <li>A miner for mining blocks.</li>
+ *   <li>A Kademlia node for distributed network operations.</li>
+ * </ul>
  */
 public class Peer {
     String host;
@@ -27,7 +28,13 @@ public class Peer {
     PublicKey publicKey;
     PrivateKey privateKey;
 
-
+    /**
+     * Constructs a Peer instance with the given hostname and port,
+     * initializes logging, and loads or generates the keys.
+     *
+     * @param hostname hostname/Ip address of Peer
+     * @param port     Port number of Peer
+     */
     public Peer(String hostname, int port) {
         this.host = hostname;
         this.port = port;
@@ -71,7 +78,10 @@ public class Peer {
 
     }
 
-
+    /**
+     * Initializes the Peer’s cryptographic keys (public and private).
+     * If the keys do not exist, they are generated and stored.
+     */
     private void initKeys() {
         try {
             KeyPair keyPair = KeysUtils.loadOrCreateKeyPair(host, port);
@@ -83,7 +93,5 @@ public class Peer {
             logger.warning("Error while creating/loading keys " + e.getMessage());
         }
     }
-
-
 }
 
