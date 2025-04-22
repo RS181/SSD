@@ -6,18 +6,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Arrays;
 
 /**
  * Message class for S/Kademlia
  */
 public class SecureMessage implements Serializable {
-    private String command;                 // Ex: "STORE", "FIND_NODE", etc
-    private Object payload;                 // Any object (Block, Node, etc)
-    private PublicKey senderPublickKey;     // Sender's public key
-    private byte[] signature;               // Signature of the content
+    private final String command;                 // Ex: "STORE", "FIND_NODE", etc
+    private final Object payload;                 // Any object (Block, Node, etc.)
+    private final PublicKey senderPublickKey;     // Sender's public key
+    private final byte[] signature;               // Signature of the content
 
     /**
      * Constructor for SecureMessage
@@ -33,7 +33,7 @@ public class SecureMessage implements Serializable {
         this.signature = signPayload(senderPrivateKey);
     }
 
-    /* Getter's  & setter's (the setter's are only here fo testing purposes)*/
+    /* Getter's  & setter's */
     public Object getPayload() {
         return payload;
     }
@@ -42,9 +42,6 @@ public class SecureMessage implements Serializable {
         return senderPublickKey;
     }
 
-    public void setPayload(Object payload) {
-        this.payload = payload;
-    }
 
 
     /* Auxiliar methods */
@@ -108,11 +105,11 @@ public class SecureMessage implements Serializable {
     @Override
     public String toString() {
         return "SecureMessage{" +
-                "command='" + command + '\'' +
-                ", payload=" + payload +
-                ", senderPublicKey=" + senderPublickKey +
-                ", signature=" + signature +
-                '}';
+               "command='" + command + '\'' +
+               ", payload=" + payload +
+               ", senderPublicKey=" + senderPublickKey +
+               ", signature=" + Arrays.toString( signature ) +
+               '}';
     }
 
 
