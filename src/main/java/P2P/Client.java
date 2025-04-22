@@ -29,7 +29,7 @@ public class Client {
 
     private static String getOptionsMenu(){
         return "----------------------------------" + '\n' +
-                " 0 - NOT ASSIGNED " + '\n' +
+                " 0 - Join Network " + '\n' +
                 " 1 - Find Kademlia Node " + '\n' +
                 " 2 - Find Value" + '\n' +
                 " 3 - Ping" + '\n' +
@@ -74,8 +74,8 @@ public class Client {
                 case "menu":
                     System.out.println(getOptionsMenu());
                     break;
-                case "0":
-                    System.out.println("NOT ASSIGNED");
+                case "0": // JOIN_NETWORK
+                    joinNetworkHandler(scanner);
                     break;
                 case "1": // FIND_NODE
                     findNodeHandler(scanner);
@@ -145,24 +145,28 @@ public class Client {
         }
     }
 
+    private void joinNetworkHandler(Scanner scanner) {
+        System.out.println("Insert the Ip address of bootstrap Node");
+        String ipAddr = scanner.nextLine();
+        System.out.println("Insert the Port of bootstrap Node");
+        int port = scanner.nextInt();
+        scanner.nextLine();
+        Node sender = new Node(peerServerHost,peerServerPort,true);
+        Node target = new Node(ipAddr,port,false);
+        System.out.println(peerServerHost + " " + peerServerPort + " --[JOIN_NETWORK]--> " + ipAddr + " " + port);
+        Operations.joinNetwork(sender, target);
+    }
+
     private void findNodeHandler(Scanner scanner) {
         System.out.println("Insert the Ip address for FIND_NODE");
         String ipAddr = scanner.nextLine();
         System.out.println("Insert the Port for FIND_NODE");
         int port = scanner.nextInt();
         scanner.nextLine();
-        System.out.println("Do you want to do join network? (yes or no)");
-        boolean joinNetwork = scanner.nextLine().equals("yes");
-        Node sender = new Node(peerServerHost,peerServerPort,joinNetwork);
+        Node sender = new Node(peerServerHost,peerServerPort,false);
         Node target = new Node(ipAddr,port,false);
-
-        if (joinNetwork){
-            System.out.println(peerServerHost + " " + peerServerPort + " --[JOIN_NETWORK]--> " + ipAddr + " " + port);
-            Operations.joinNetwork(sender, target);
-        } else {
-            System.out.println(peerServerHost + " " + peerServerPort + " --[FIND_NODE]--> " + ipAddr + " " + port);
-            Operations.findNode(sender, target.getNodeId());
-        }
+        System.out.println(peerServerHost + " " + peerServerPort + " --[FIND_NODE]--> " + ipAddr + " " + port);
+        Operations.findNode(sender, target.getNodeId());
     }
 
     private void findValueHandler(Scanner scanner) {
