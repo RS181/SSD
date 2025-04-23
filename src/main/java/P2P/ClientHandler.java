@@ -458,7 +458,7 @@ public class ClientHandler implements Runnable {
                             logger.info("Sending STOP to @" + n.getIpAddr() + " " + n.getPort());
                             // send STOP message to stop all Threads of Neighbours
                             PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "STOP", null);
-                            // send ADD_MINED_BLOCK message to add block to Neighbours blockchain
+                            // send secure message ADD_MINED_BLOCK  to add block to Neighbours blockchain
                             PeerComunication.sendMessageToPeer(n.getIpAddr(),n.getPort(),"ADD_MINED_BLOCK",b);
                         }
 
@@ -500,8 +500,8 @@ public class ClientHandler implements Runnable {
                         blockchain.addBlock(b,b.getMinerPublicKey());
                         clientOut.writeObject("OK");
                     }else {
-                        clientOut.writeObject("Error: Exepted block but receveid somethin else");
-                        logger.warning("Error: Did not receive a block (addMinedBlockHandler)");
+                        clientOut.writeObject("Error: Expected Block but received something else");
+                        logger.warning("Error: Expected Block but received something else (addMinedBlockHandler)");
                     }
                 }catch (Exception e){
                     logger.severe("Error ocured (addMinedBlockHandler)");
@@ -826,19 +826,24 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     *  Sends the blockchain stored in the peer to the client.
+     * Sends the current state of the blockchain to the client through the given output stream.
      * <p>
-     * This method synchronizes on the {@code blockchain} to prevent race conditions
-     * between threads. It then writes the blockchain to the given output stream.
+     * This method creates a {@link SecureMessage} containing the blockchain data,
+     * signs it using the miner's public and private keys, and writes it to the client
+     * via the provided {@link ObjectOutputStream}. The operation is synchronized on the
+     * blockchain object to prevent concurrent modifications by multiple threads.
      * </p>
      *
-     * @param clientOut the output stream of the client
+     * @param clientOut the output stream used to send the blockchain to the client
      */
     private void getBlockchain(ObjectOutputStream clientOut) {
         // Syncronize on blockchain to avoid race conditions between threads
         synchronized (blockchain) {
             try {
-                clientOut.writeObject(blockchain);
+                SecureMessage secureMessage =
+                        new SecureMessage( "GET_BLOCKCHAIN", blockchain,
+                                miner.getPublicKey(),miner.getPrivateKey());
+                clientOut.writeObject(secureMessage);
                 clientOut.flush();
             } catch (Exception e) {
                 logger.severe("Error ocured (getBlockchain)");

@@ -111,7 +111,7 @@ public class Client {
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_TRANSACTION_POOL",null));
                     break;
                 case "12": // Get Server blockchain
-                    System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_BLOCKCHAIN",null));
+                    getBlockchainHandler();
                     break;
                 case "13": // Get Server Kademlia Node
                     System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_KADEMLIA_NODE",null));
@@ -276,5 +276,16 @@ public class Client {
                 PeerComunication.sendMessageToPeer(
                         peerServerHost, peerServerPort,"GET_PLACED_BIDS",auctionId)
         );
+    }
+
+    private void getBlockchainHandler() {
+        if(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"GET_BLOCKCHAIN",null)
+                   instanceof SecureMessage getBlockchainSecureMessage
+           && getBlockchainSecureMessage.verifySignature()
+           && Operations.checkNodeId(getBlockchainSecureMessage,new Node(peerServerHost,peerServerPort,false))
+        )
+        {
+            System.out.println(getBlockchainSecureMessage.getPayload());
+        }
     }
 }

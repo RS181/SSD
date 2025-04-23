@@ -138,7 +138,8 @@ public class Operations {
      * <ol>
      *   <li>Contact the {@code bootstrap} node via {@code FIND_NODE} to retrieve the {@code k} closest nodes
      *       to the {@code joiningNode}, and update the {@code joiningNode}'s routing table.</li>
-     *   <li>Synchronize local data: retrieve the bootstrap node’s storage and blockchain, reset the local versions
+     *   <li>Synchronize local data: retrieve the bootstrap node’s storage and blockchain (checking if this information
+     *   came from bootstrap node with the help of SecureMessage),reset the local versions</li>
      *       on the {@code joiningNode}, and apply the received data.</li>
      *   <li>Add the {@code joiningNode} to the bootstrap's routing table via {@code ADD_PEER}.</li>
      *   <li>Notify all {@code k} closest nodes about the new {@code joiningNode} to allow them to update
@@ -190,7 +191,12 @@ public class Operations {
                 PeerComunication.sendMessageToPeer(joiningIp, joiningPort, "RESET_BLOCKCHAIN", null);
 
                 if (PeerComunication.sendMessageToPeer(bootstrapIp, bootstrapPort,"GET_BLOCKCHAIN",null)
-                                instanceof  Blockchain bootstrapBlockchain)
+                        instanceof  SecureMessage getBlockchainSecureMessage
+                    && getBlockchainSecureMessage.verifySignature()
+                    && checkNodeId(getBlockchainSecureMessage,bootstrap)
+                    && getBlockchainSecureMessage.getPayload()
+                            instanceof Blockchain bootstrapBlockchain
+                )
                 {
                     updatePeerBlockchain(joiningNode, bootstrapBlockchain);
                 }
