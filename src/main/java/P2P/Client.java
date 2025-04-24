@@ -128,11 +128,9 @@ public class Client {
                     break;
                     // TODO REMOVER OS PONTOS QUE ESTÃO ABAIXO (SÓ PARA TESTE)
                 case "15":
-                    if (PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort,"GET_ROUTING_TABLE",null) instanceof SecureMessage m){
+                    if (PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort,"GET_ROUTING_TABLE",null)
+                            instanceof SecureMessage m && m.verifySignature()){
                         System.out.println(m.getPayload());
-                        //System.out.println(m.verifySignature());
-                        //m.setPayload("dummy");
-                        //System.out.println(m.verifySignature());
                     }
                     break;
                 case "exit": // Exit
@@ -223,46 +221,63 @@ public class Client {
     }
 
     private  void clientMineHandler() {
-        System.out.println("Waiting for Response from Peer Server...");
-        System.out.println("Peer Server Response: " + PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"MINE",null));
+        if (isPeerPartOfNetwork()) {
+            System.out.println( "Waiting for Response from Peer Server..." );
+            System.out.println( "Peer Server Response: " + PeerComunication.sendMessageToPeer( peerServerHost, peerServerPort, "MINE", null ) );
+        } else {
+            System.out.println("Please join the network!! (Press 0)");
+        }
     }
 
     private void startAuctionHanlder(Scanner scanner) {
-        System.out.println("Insert the name for the auction you want to Create and Start");
-        String auctionName = scanner.nextLine();
-        Transaction startAuction =
-                new Transaction(username,username, Transaction.TransactionType.START_AUCTION,
-                        auctionName,0,new Date().getTime());
+        if (isPeerPartOfNetwork()) {
+            System.out.println( "Insert the name for the auction you want to Create and Start" );
+            String auctionName = scanner.nextLine();
+            Transaction startAuction =
+                    new Transaction( username, username, Transaction.TransactionType.START_AUCTION,
+                            auctionName, 0, new Date().getTime() );
 
-        System.out.println("Waiting for Response from Peer Server...");
-        System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",startAuction));
+            System.out.println( "Waiting for Response from Peer Server..." );
+            System.out.println( PeerComunication.sendMessageToPeer( peerServerHost, peerServerPort, "ADD_TRANSACTION", startAuction ) );
+        }else {
+            System.out.println("Please join the network!! (Press 0)");
+        }
     }
 
     // Only the user that Started an auction can Stop it !!
     private void stopAuctionHandler(Scanner scanner) {
-        System.out.println("Insert the name for the auction you want to Stop");
-        String auctionName = scanner.nextLine();
-        Transaction stopAuction =
-                new Transaction(username,username, Transaction.TransactionType.CLOSE_AUCTION,
-                        auctionName,0,new Date().getTime());
+        if (isPeerPartOfNetwork()) {
+            System.out.println( "Insert the name for the auction you want to Stop" );
+            String auctionName = scanner.nextLine();
+            Transaction stopAuction =
+                    new Transaction( username, username, Transaction.TransactionType.CLOSE_AUCTION,
+                            auctionName, 0, new Date().getTime() );
 
-        System.out.println("Waiting for Response from Peer Server...");
-        System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",stopAuction));
+            System.out.println( "Waiting for Response from Peer Server..." );
+            System.out.println( PeerComunication.sendMessageToPeer( peerServerHost, peerServerPort, "ADD_TRANSACTION", stopAuction ) );
+        }
+        else {
+            System.out.println("Please join the network!! (Press 0)");
+        }
     }
 
     private void placeBidHandler(Scanner scanner) {
-        System.out.println("Insert the owner of auction you want to Place Bid");
-        String auctionOwner = scanner.nextLine();
-        System.out.println("Insert the name for the auction you want to Place Bid");
-        String auctionName = scanner.nextLine();
-        System.out.println("Insert the amount of the Bid");
-        Double bidAmount = scanner.nextDouble();
-        Transaction placeBid =
-                new Transaction(auctionOwner,username ,Transaction.TransactionType.PLACE_BID,
-                        auctionName,bidAmount,new Date().getTime());
+        if(isPeerPartOfNetwork()) {
+            System.out.println( "Insert the owner of auction you want to Place Bid" );
+            String auctionOwner = scanner.nextLine();
+            System.out.println( "Insert the name for the auction you want to Place Bid" );
+            String auctionName = scanner.nextLine();
+            System.out.println( "Insert the amount of the Bid" );
+            Double bidAmount = scanner.nextDouble();
+            Transaction placeBid =
+                    new Transaction( auctionOwner, username, Transaction.TransactionType.PLACE_BID,
+                            auctionName, bidAmount, new Date().getTime() );
 
-        System.out.println("Waiting for Response from Peer Server...");
-        System.out.println(PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort,"ADD_TRANSACTION",placeBid));
+            System.out.println( "Waiting for Response from Peer Server..." );
+            System.out.println( PeerComunication.sendMessageToPeer( peerServerHost, peerServerPort, "ADD_TRANSACTION", placeBid ) );
+        } else {
+            System.out.println("Please join the network!! (Press 0)");
+        }
     }
 
     private void checkBidsHandler(Scanner scanner) {
@@ -287,5 +302,10 @@ public class Client {
         {
             System.out.println(getBlockchainSecureMessage.getPayload());
         }
+    }
+
+    private boolean isPeerPartOfNetwork(){
+        String s = (String) PeerComunication.sendMessageToPeer( peerServerHost, peerServerPort, "IS_ON_NETWORK",null);
+        return !(s.contains( "NOT OK" ));
     }
 }

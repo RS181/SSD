@@ -81,6 +81,13 @@ public class ClientHandler implements Runnable {
                     case "RESET_STORAGE": // used when nodes joins the network
                         resetStorageHandler(out);
                         break;
+                    case "IS_ON_NETWORK": // We considered that the node is on the network (if it has at least 2 neighbours)
+                        if (server.knowNeighbours.size() >= 2)
+                            out.writeObject( "OK: Peer is part of network" );
+                        else
+                            out.writeObject( "NOT OK: Peer is not part of network" );
+                        out.flush();
+                        break;
 
                     // Blockchain/App related methods
                     case "MINE":
