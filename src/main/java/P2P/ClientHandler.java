@@ -498,8 +498,16 @@ public class ClientHandler implements Runnable {
 
                     if (receivedObject instanceof Block b){
                         System.out.println("RECEIVED BLOCK FROM PEER");
-                        blockchain.addBlock(b,b.getMinerPublicKey());
-                        clientOut.writeObject("OK");
+
+                        boolean result = blockchain.addBlock(b,b.getMinerPublicKey());
+                        if(!result) {
+                            clientOut.writeObject( "NOT OK: could not add block to blockchain" );
+                            logger.severe( "Error: Invalid Block (could not add received block to blockchain)" );
+                        }
+                        else {
+                            clientOut.writeObject( "OK" );
+                            logger.info( "Block was added successfully to blockchain" );
+                        }
                     }else {
                         clientOut.writeObject("Error: Expected Block but received something else");
                         logger.warning("Error: Expected Block but received something else (addMinedBlockHandler)");

@@ -49,6 +49,12 @@ public class Client {
                 "----------------------------------";
     }
 
+    private static String getInjectionMenu(){
+        return "----------------------------------" + '\n' +
+               " i1 - Try to add non mined Block " + '\n' +
+               "----------------------------------";
+    }
+
     public static void main(String[] args) {
         if (args.length < 3) {
             System.out.println("Usage: java Client <username> <peerServerHost> <peerServerPort>");
@@ -73,6 +79,9 @@ public class Client {
             switch (input){
                 case "menu":
                     System.out.println(getOptionsMenu());
+                    break;
+                case "injection":
+                    System.out.println(getInjectionMenu());
                     break;
                 case "0": // JOIN_NETWORK
                     joinNetworkHandler(scanner);
@@ -132,6 +141,11 @@ public class Client {
                             instanceof SecureMessage m && m.verifySignature()){
                         System.out.println(m.getPayload());
                     }
+                    break;
+
+                /* fault injection options */
+                case "i1":
+                    sendInvalidBlock(scanner);
                     break;
                 case "exit": // Exit
                     end = true;
@@ -308,4 +322,23 @@ public class Client {
         String s = (String) PeerComunication.sendMessageToPeer( peerServerHost, peerServerPort, "IS_ON_NETWORK",null);
         return !(s.contains( "NOT OK" ));
     }
+
+    /* fault injection mechanism */
+    private void sendInvalidBlock(Scanner scanner){
+        ArrayList<Transaction> randomTransactions = new ArrayList<>();
+
+        randomTransactions.add(
+                new Transaction("fake_user","fake_user", Transaction.TransactionType.START_AUCTION,
+                        "fake_auction", 0, System.currentTimeMillis())
+        );
+
+        System.out.println("Please put the hash of the last valid block in the blockchain");
+        String prev = scanner.nextLine();
+
+        Block nonMinedBlock = new Block(randomTransactions,prev);
+
+        PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort, "ADD_MINED_BLOCK", nonMinedBlock);
+    }
+
+
 }
