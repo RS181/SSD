@@ -78,9 +78,6 @@ public class ClientHandler implements Runnable {
                     case "ADD_TO_STORAGE":
                         addToStorageHandler(in,out);
                         break;
-                    case "RESET_STORAGE": // used when nodes joins the network
-                        resetStorageHandler(out);
-                        break;
                     case "IS_ON_NETWORK": // We considered that the node is on the network (if it has at least 2 neighbours)
                         if (server.knowNeighbours.size() >= 2)
                             out.writeObject( "OK: Peer is part of network" );
@@ -98,9 +95,6 @@ public class ClientHandler implements Runnable {
                         break;
                     case "ADD_TRANSACTION":
                         addTransactionHandler(in, out);
-                        break;
-                    case "RESET_BLOCKCHAIN": // used when nodes joins the network
-                        resetBlockchainHandler(out);
                         break;
 
                     // App only related methods
@@ -190,26 +184,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    /**
-     * Resets the local Kademlia node's storage.
-     */
-    private  void  resetStorageHandler(ObjectOutputStream clientOut){
-        // Syncronize on kademlia Node to avoid race conditions between threads
-        synchronized (kademliaNode){
-            try {
-                logger.info("Going to reset node's storage...");
-                kademliaNode.getLocalStorage().clear();
-                if (kademliaNode.getLocalStorage().isEmpty())
-                    logger.info("Storage of node " + kademliaNode.getIpAddr() + ":" + kademliaNode.getPort() + " was RESET!");
-                else
-                    logger.severe("Storage of node " + kademliaNode.getIpAddr() + ":" + kademliaNode.getPort() + " was NOT RESET!");
-                clientOut.writeObject("OK");
-                clientOut.flush();
-            }catch (Exception e){
-                logger.severe("Error ocured (resetStorageHandler)");
-            }
-        }
-    }
 
     /**
      * Handles a FIND_NODE request and responds with the closest known nodes.
@@ -662,27 +636,6 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Resets the blockchain by clearing its contents and setting the last block to null.
-     */
-    private void resetBlockchainHandler(ObjectOutputStream clientOut) {
-        synchronized (blockchain){
-            try{
-                logger.info("Going to reset blockchain...");
-                blockchain.getBlockchain().clear();
-                blockchain.setLastBlock(null);
-                if(blockchain.getBlockchain().size() == 0 && blockchain.getLastBlock() == null)
-                    logger.info("Blockchain of " + server.host + " " + server.port + " was RESET!!");
-                else
-                    logger.severe("Blockchain of "+ server.host + " " + server.port + " was NOT RESET!!!");
-                clientOut.writeObject("OK");
-                clientOut.flush();
-            }catch (Exception e){
-                logger.severe("Error ocured (resetBlockchainHandler)");
-            }
-        }
-    }
-
-    /**
      * Determines and announces the winner of an auction based on the highest bid.
      */
     private void anounceAuctionWinner(String auctionId) {
@@ -824,6 +777,7 @@ public class ClientHandler implements Runnable {
         // Syncronize on transactionsPool to avoid race conditions between threads
         synchronized (transactionsPool) {
             try {
+                // TODO por como securemessage
                 clientOut.writeObject(transactionsPool);
                 clientOut.flush();
             } catch (Exception e) {
@@ -871,6 +825,7 @@ public class ClientHandler implements Runnable {
         // Syncronize on kademliaNode to avoid race conditions between threads
         synchronized (kademliaNode) {
             try {
+                // TODO por como securemessage
                 clientOut.writeObject(kademliaNode + "\n" + kademliaNode.getRoutingTable());
                 clientOut.flush();
             } catch (Exception e) {

@@ -139,7 +139,7 @@ public class Operations {
      *   <li>Contact the {@code bootstrap} node via {@code FIND_NODE} to retrieve the {@code k} closest nodes
      *       to the {@code joiningNode}, and update the {@code joiningNode}'s routing table.</li>
      *   <li>Synchronize local data: retrieve the bootstrap node’s storage and blockchain (checking if this information
-     *   came from bootstrap node with the help of SecureMessage),reset the local versions</li>
+     *   came from bootstrap node with the help of SecureMessage)</li>
      *       on the {@code joiningNode}, and apply the received data.</li>
      *   <li>Add the {@code joiningNode} to the bootstrap's routing table via {@code ADD_PEER}.</li>
      *   <li>Notify all {@code k} closest nodes about the new {@code joiningNode} to allow them to update
@@ -178,8 +178,7 @@ public class Operations {
                 && checkNodeId(storageSecureMessage,bootstrap)
             ) {
 
-                // update joining nodes local storage with local storage of k closest nodes
-                PeerComunication.sendMessageToPeer(joiningIp, joiningPort, "RESET_STORAGE", null);
+                // Update joining nodes local storage with local storage of k closest nodes
                 Map<String, Block> bootstrapStorage = (Map<String, Block>) storageSecureMessage.getPayload();
                 updatePeerStorageInfo(joiningNode, bootstrapStorage);
 
@@ -188,8 +187,6 @@ public class Operations {
                 System.out.println("====================================");
 
                 // Update joining node blockchain with bootstraps blockchain
-                PeerComunication.sendMessageToPeer(joiningIp, joiningPort, "RESET_BLOCKCHAIN", null);
-
                 if (PeerComunication.sendMessageToPeer(bootstrapIp, bootstrapPort,"GET_BLOCKCHAIN",null)
                         instanceof  SecureMessage getBlockchainSecureMessage
                     && getBlockchainSecureMessage.verifySignature()
@@ -406,8 +403,7 @@ public class Operations {
      * @param targetNode  Node/Peer that we are going to send the blockchain
      * @param blockchain  blockchain that will be used to update Peer
      *
-     * @note we only use this method when a node first joins a network (when this happens the joining node resets
-     *       the blockchain and the local storage)
+     * @note we only use this method when a node first joins a network
      */
     private static void updatePeerBlockchain (Node targetNode, Blockchain blockchain){
         for(Block b : blockchain.getBlockchain()){
