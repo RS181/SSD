@@ -384,81 +384,101 @@ public class ClientHandler implements Runnable {
     /**
      * Handles the mining process and communicates the result to the client.
      *
-     * <p>If the transaction pool lacks sufficient transactions, an error message is sent.
-     * Otherwise, a new block is mined, validated, added to the blockchain, and propagated
-     * throughout the network.</p>
+     * <p>This method ensures that only valid transactions are mined by calling {@code removeInvalidPlaceBid()}
+     * before proceeding. If there are no valid transactions left, an informative message is sent to the client.</p>
      *
-     * <p>After successful mining:
+     * <p>Otherwise, a new block is mined from the current state of the transaction pool, then validated,
+     * added to the local blockchain, and propagated to peers in the network.</p>
+     *
+     * <p>Steps performed after successful mining:
      * <ul>
-     *   <li>The transaction pool is cleared.</li>
-     *   <li>A "STOP" message is sent to all neighbors to halt their mining threads.</li>
-     *   <li>An "ADD_MINED_BLOCK" message is sent to update their blockchains.</li>
-     *   <li>A "STORE" operation replicates the mined block across the network.</li>
+     *   <li>The transaction pool is cleared to prevent reuse of already-mined transactions.</li>
+     *   <li>A "STOP" message is sent to all known neighbors to halt their ongoing mining operations.</li>
+     *   <li>An "ADD_MINED_BLOCK" message is sent to ensure neighbors update their blockchains with the new block.</li>
+     *   <li>A "STORE" operation is triggered to distribute and persist the block across the network.</li>
      * </ul>
      *
-     * <p>This method synchronizes on the {@code transactionsPool} to avoid race conditions
-     * in multi-threaded environments.</p>
+     * <p>Note: This method performs synchronization only when accessing or modifying the {@code transactionsPool},
+     * to ensure thread safety and prevent race conditions in a multithreaded environment. Time-consuming operations
+     * such as mining and networking are executed outside the synchronized block to avoid blocking other threads.</p>
      *
      * @param clientOut the stream used to send responses to the client
      */
     private void mineHandler(ObjectOutputStream clientOut) {
+        ArrayList<Transaction> transactionsToMine;
         synchronized (transactionsPool) {
-            try {
-                if (transactionsPool.size() < 1) {
-                    clientOut.writeObject("Dont have enough trasanctions to mine a block");
+            removeInvalidPlaceBid();
+            if (transactionsPool.isEmpty() ) {
+                try {
+                    clientOut.writeObject("Dont have enough transactions to mine a block");
                     clientOut.flush();
-                } else {
-                    // Reset miner (to garante that stopMining = false in the begining)
-                    miner.canStartMining();
-
-                    logger.info("Received MINE message");
-                    String prevhash = "";
-                    if (blockchain.getLastBlock() != null)
-                        prevhash = blockchain.getLastBlock().getBlockHash();
-
-                    logger.info("Started Mining Block ...");
-                    Block b = miner.mineBlock(new ArrayList<>(transactionsPool), prevhash);
-                    logger.info("Finished Mining Block !!!");
-
-                    // Check if client's socket is still open
-                    if (!client.isClosed()) {
-                        System.out.println("Client Socket is open");
-                        if (!blockchain.addBlock(b, miner.publicKey)) { // if the block isn't valid send erro message
-                            logger.severe("Error ocured while adding block to blockchain (mineHandle)");
-                            return;
-                        }
-                        // Reset transactions pool
-                        logger.info("Reseting Transactions pool");
-                        transactionsPool.clear();
-
-                        clientOut.writeObject("OK");
-                        clientOut.flush();
-
-
-                        for (Node n : server.knowNeighbours) {
-                            logger.info("Sending STOP to @" + n.getIpAddr() + " " + n.getPort());
-                            // send STOP message to stop all Threads of Neighbours
-                            PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "STOP", null);
-                            // send secure message ADD_MINED_BLOCK  to add block to Neighbours blockchain
-                            PeerComunication.sendMessageToPeer(n.getIpAddr(),n.getPort(),"ADD_MINED_BLOCK",b);
-                        }
-
-                        // Make a STORE operation (so that we broadcast the block to
-                        // sender's k the closest nodes, and each one saves them in local storage)
-                        Node sender = new Node(server.host,server.port,false);
-                        Operations.store(sender,b.getBlockHash(),b,miner);
-
-                    } else
-                        System.out.println("Client Socket is closed");
+                } catch (IOException e) {
+                    logger.warning("I/O error while replying to client");
                 }
-            } catch (SocketException e) {
-                logger.warning("Socket Closed while peer was mining (mineHandler)");
                 return;
-            } catch (IOException e) {
-                logger.warning("Error ocured in I/O (mineHandler)");
-            } catch (NullPointerException e){
-                e.printStackTrace();
-                logger.warning("NullPointerException Error in mineHandler");
+            }
+            transactionsToMine = new ArrayList<>(transactionsPool); // clone current pool
+        }
+
+        try {
+            miner.canStartMining();
+            logger.info("Received MINE message");
+
+            String prevhash = blockchain.getLastBlock() != null ? blockchain.getLastBlock().getBlockHash() : "";
+
+            logger.info("Started Mining Block ...");
+            Block b = miner.mineBlock(transactionsToMine, prevhash);
+            logger.info("Finished Mining Block !!!");
+
+            if (!client.isClosed()) {
+                if (!blockchain.addBlock(b, miner.publicKey)) {
+                    logger.severe("Error occurred while adding block to blockchain (mineHandle)");
+                    return;
+                }
+
+                // Reset transactions pool (with syncronized, to avoid race conditions)
+                synchronized (transactionsPool) {
+                    logger.info("Resetting Transactions pool");
+                    transactionsPool.clear();
+                }
+
+                clientOut.writeObject("OK");
+                clientOut.flush();
+
+                for (Node n : server.knowNeighbours) {
+                    PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "STOP", null);
+                    PeerComunication.sendMessageToPeer(n.getIpAddr(), n.getPort(), "ADD_MINED_BLOCK", b);
+                }
+
+                Node sender = new Node(server.host, server.port, false);
+                Operations.store(sender, b.getBlockHash(), b, miner);
+            } else {
+                System.out.println("Client Socket is closed");
+            }
+        } catch (SocketException e) {
+            logger.warning("Socket Closed while peer was mining (mineHandler)");
+        } catch (IOException | NullPointerException e) {
+            logger.warning("Exception in mineHandler");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Remove PLACE_BID transaction that are no longer valid
+     * (e.g. the auction the bid was made is closed)
+     */
+    private void removeInvalidPlaceBid(){
+        Iterator<Transaction> it = transactionsPool.iterator();
+        while (it.hasNext()) {
+            Transaction t = it.next();
+            if (t.getType().equals( Transaction.TransactionType.PLACE_BID  )) {
+                Set<String> availableAuctions = blockchain.getAvailableAuctions();
+                String auctionId = t.getAuctionId();
+                for(String auction : availableAuctions){
+                    if(auction.equals(auctionId))
+                        return;
+                }
+                it.remove();
             }
         }
     }
@@ -491,58 +511,73 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Handles the addition of a new transaction received from a client, validates it,
-     * and adds it to the transaction pool based on specific rules.
-     * <p>
-     * Valid transactions are added to {@code transactionsPool} if they meet the following criteria:
-     * <ul>
-     *   <li>Transactions validated by {@code checkTransaction(t, t.getType())} are accepted.</li>
-     *   <li>If the transaction type is {@code PLACE_BID}, the pool must be empty (size < 1).</li>
-     *   <li>For other transaction types, the pool must contain less than 3 transactions (size < 3).</li>
-     * </ul>
-     * The method synchronizes on {@code transactionsPool} to prevent race conditions.
+     * Handles the reception and processing of a new transaction from a client.
      *
-     * @param clientIn  the input stream of the client
-     * @param clientOut the output stream of the client
+     * <p>The transaction is first validated using {@code checkTransaction(t, t.getType())}. If valid, it is added
+     * to the {@code transactionsPool} according to specific rules based on its type:</p>
+     *
+     * <ul>
+     *   <li>For standard transactions (not {@code PLACE_BID} or {@code CLOSE_AUCTION}): added if the pool has less than 3.</li>
+     *   <li>For {@code PLACE_BID} or {@code CLOSE_AUCTION} transactions: added regardless of pool size, but they
+     *       will immediately trigger mining if added to an empty pool.</li>
+     * </ul>
+     *
+     * <p>If the conditions for mining are met (e.g. pool reaches 3 transactions, or a bid-related transaction is added
+     * when the pool is empty), a "MINE" request is sent to the local peer, which initiates the mining process asynchronously.</p>
+     *
+     * <p>This method uses a {@code synchronized} block around the {@code transactionsPool} to ensure thread safety when
+     * reading and modifying it. Any potentially blocking or long operations, such as initiating mining or logging, are
+     * executed outside the synchronized block to avoid deadlocks or thread contention.</p>
+     *
+     * @param clientIn  the input stream to receive the transaction object from the client
+     * @param clientOut the output stream to send responses back to the client
      */
+
     private void addTransactionHandler(ObjectInputStream clientIn, ObjectOutputStream clientOut) {
-        // Syncronize on transactionsPool to avoid race conditions between threads
-        synchronized (transactionsPool) {
-            try {
-                logger.info("Adding transaction ...");
-                clientOut.writeObject("OK");
-                clientOut.flush();
+        boolean shouldMine = false;
+        String mineReason = "";     // only for debug
 
-                Object receivedObject = clientIn.readObject();
+        try {
+            logger.info("Adding transaction ...");
+            clientOut.writeObject("OK");
+            clientOut.flush();
 
-                if (receivedObject instanceof Transaction t && checkTransaction(t,t.getType())) {
-                        if(!t.getType().equals(Transaction.TransactionType.PLACE_BID) &&
-                                !t.getType().equals(Transaction.TransactionType.CLOSE_AUCTION)) {
-                            if (transactionsPool.size() < 3) {
-                                transactionsPool.add(t);
-                                clientOut.writeObject("OK");
-                            } else {
-                                clientOut.writeObject("Not Ok: transanctionsPool has " +
-                                        "reached the limit of uncommmited transactions" +
-                                        "\n(Please send Mine block --> press 4))");
-                            }
-                        }else {
-                            if(transactionsPool.size() >= 1){
-                                clientOut.writeObject("Not Ok: Please commit your local transactions " +
-                                        "before placing a Bid or Closing an auction" +
-                                        "\n(Please send Mine block --> press 4))");
-                            } else {
-                                transactionsPool.add(t);
-                                clientOut.writeObject("OK");
+            Object receivedObject = clientIn.readObject();
+
+            if (receivedObject instanceof Transaction t && checkTransaction(t, t.getType())) {
+                synchronized (transactionsPool) {
+                    if (!t.getType().equals(Transaction.TransactionType.PLACE_BID) &&
+                        !t.getType().equals(Transaction.TransactionType.CLOSE_AUCTION)) {
+
+                        if (transactionsPool.size() < 3) {
+                            transactionsPool.add(t);
+                            if (transactionsPool.size() == 3) {
+                                shouldMine = true;
+                                mineReason = "Transaction pool reached 3 transactions";
                             }
                         }
-                } else {
-                    clientOut.writeObject("NOT OK: Invalid transaction");
+                    } else {
+                        transactionsPool.add(t);
+                        shouldMine = true;
+                        mineReason = "PLACE_BID or CLOSE_AUCTION added with empty pool";
+                    }
                 }
-            } catch (Exception e) {
-                logger.severe("Error ocured (addTransactionHandler)");
-                e.printStackTrace();
+
+                clientOut.writeObject("OK");
+
+                // Outside of  synchronized!
+                if (shouldMine) {
+                    logger.info("Triggering mining process because: " + mineReason);
+                    String response =
+                            (String) PeerComunication.sendMessageToPeer(server.host, server.port, "MINE", null);
+                    System.out.println("Peer [MINE Triggered] Response: " + response);
+                }
+            } else {
+                clientOut.writeObject("NOT OK: Invalid transaction");
             }
+        } catch (Exception e) {
+            logger.severe("Error occurred (addTransactionHandler)");
+            e.printStackTrace();
         }
     }
 
