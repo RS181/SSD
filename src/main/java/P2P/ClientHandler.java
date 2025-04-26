@@ -341,8 +341,8 @@ public class ClientHandler implements Runnable {
                         clientOut.writeObject("NOT OK");
                     }
                 }else{
-                    clientOut.writeObject("Error: Expected Node but received something else");
-                    logger.warning("Error: Did not receive a Node (removePeerHandler)");
+                    clientOut.writeObject("Error: Object is not a node or node is invalid");
+                    logger.warning("Error: Object is not a node or node is invalid (removePeerHandler)");
                 }
             }catch (Exception e){
                 logger.severe("Error ocured (removePeerHandler)");
@@ -374,8 +374,8 @@ public class ClientHandler implements Runnable {
                         clientOut.writeObject("NOT OK ( couldn't add " + n + " ) to " + server.host + " " + server.port);
                     }
                 }else{
-                    clientOut.writeObject("Error: Expected Node but received something else");
-                    logger.warning("Error: Did not receive a Node (addPeerHandler)");
+                    clientOut.writeObject("Error: Object is not a node or node is invalid");
+                    logger.warning("Error: Object is not a node or node is invalid (addPeerHandler)");
                 }
             }catch (Exception e){
                 e.printStackTrace();

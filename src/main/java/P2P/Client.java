@@ -3,14 +3,12 @@ package P2P;
 import BlockChain.Block;
 import BlockChain.Miner;
 import BlockChain.Transaction;
+import Kademlia.Constants;
 import Kademlia.Node;
 import Kademlia.Operations;
 import Kademlia.SecureMessage;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Class that serves as an interface to the client
@@ -52,6 +50,7 @@ public class Client {
     private static String getInjectionMenu(){
         return "----------------------------------" + '\n' +
                " i1 - Try to add non mined Block " + '\n' +
+               " i2 - Try to add invalid Peer " + '\n' +
                "----------------------------------";
     }
 
@@ -147,6 +146,9 @@ public class Client {
                 case "i1":
                     sendInvalidBlock(scanner);
                     break;
+                case "i2":
+                    addInvalidNode();
+                    break;
                 case "exit": // Exit
                     end = true;
                     break;
@@ -224,7 +226,6 @@ public class Client {
             if(pingWasSucessful)
                 System.out.println(ipAddr + " " + port + " is ON-LINE");
             else {
-                // TODO enviar o REMOVE PEER para todos os nós conhecidos por PEER
                 System.out.println(ipAddr + " " + port + " is OFF-LINE");
             }
         }
@@ -324,6 +325,7 @@ public class Client {
     }
 
     /* fault injection mechanism */
+
     private void sendInvalidBlock(Scanner scanner){
         ArrayList<Transaction> randomTransactions = new ArrayList<>();
 
@@ -338,6 +340,19 @@ public class Client {
         Block nonMinedBlock = new Block(randomTransactions,prev);
 
         PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort, "ADD_MINED_BLOCK", nonMinedBlock);
+    }
+
+    private void addInvalidNode(){
+        Node fakeNode = new Node();
+        char[] c = new char[Constants.NUMBER_OF_BITS_NODE_ID];
+        Arrays.fill(c, '0');
+        fakeNode.setNodeId(new String(c));
+        fakeNode.setIpAddr( "localhost" );
+        fakeNode.setPort( 2020 );
+        String response =
+                (String) PeerComunication.sendMessageToPeer(peerServerHost, peerServerPort, "ADD_PEER", fakeNode);
+
+        System.out.println(response);
     }
 
 

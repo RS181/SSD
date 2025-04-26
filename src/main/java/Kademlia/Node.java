@@ -23,6 +23,12 @@ public class Node implements Serializable {
     private PublicKey publicKey;
 
     /**
+     * Default constructor (only for testing purposes)
+     */
+    public Node(){
+    }
+
+    /**
      * Constructs a new Kademlia node.
      * Initializes the node with its IP address, port, and optionally creates a routing table.
      * It attempts to load the node's public key from a file based on its IP address and port.
@@ -52,7 +58,7 @@ public class Node implements Serializable {
         localStorage = new HashMap<>();
     }
 
-    /* Getter's */
+    /* Getter's & setters (the setters are only here for test purposes) */
     public String getNodeId() {
         return nodeId;
     }
@@ -71,6 +77,18 @@ public class Node implements Serializable {
 
     public Map<String, Block> getLocalStorage() {
         return localStorage;
+    }
+
+    public void setNodeId(String nodeId) {
+        this.nodeId = nodeId;
+    }
+
+    public void setIpAddr(String ipAddr) {
+        this.ipAddr = ipAddr;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
     /* Auxiliar methods */
