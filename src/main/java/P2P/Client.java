@@ -339,7 +339,9 @@ public class Client {
 
         Block nonMinedBlock = new Block(randomTransactions,prev);
 
-        PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort, "ADD_MINED_BLOCK", nonMinedBlock);
+        String response =
+                (String) PeerComunication.sendMessageToPeer(peerServerHost,peerServerPort, "ADD_MINED_BLOCK", nonMinedBlock);
+        System.out.println(response);
     }
 
     private void addInvalidNode(){

@@ -47,7 +47,7 @@ public class Node implements Serializable {
         try {
             this.publicKey = KeysUtils.loadPublicKey(Path.of(KeysUtils.KEYS_DIR + ipAddr + "_" + port + "_PKK"));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            //throw new RuntimeException(e);
         }
         if (this.publicKey == null) printWarning();
 
@@ -170,12 +170,19 @@ public class Node implements Serializable {
      * @return {@code true} if the node's claimed ID matches the computed ID from the public key,
      *         {@code false} otherwise
      */
-    public boolean checkNodeId() throws Exception {
+    public boolean checkNodeId() {
+
         String prefix = ipAddr + "_" + port;
-        PublicKey storedPK = KeysUtils.loadPublicKey( Path.of( KeysUtils.KEYS_DIR + prefix + "_Pkk" ) );
-        String computedNodeId = CryptoUtils.generateSecureNodeId( storedPK );
-        System.out.println("NODE ID CHECK = " + nodeId.equals( computedNodeId ));
-        return nodeId.equals( computedNodeId );
+        try {
+            PublicKey storedPK = KeysUtils.loadPublicKey( Path.of( KeysUtils.KEYS_DIR + prefix + "_Pkk" ) );
+
+            String computedNodeId = CryptoUtils.generateSecureNodeId( storedPK );
+            System.out.println("NODE ID CHECK = " + nodeId.equals( computedNodeId ));
+            return nodeId.equals( computedNodeId );
+        }catch (Exception e ){
+            return false;
+        }
+
     }
 
 }

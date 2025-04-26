@@ -148,7 +148,7 @@ public class ClientHandler implements Runnable {
             System.out.println("closed client connection");
         } catch (SocketException e) {
             logger.warning("Caught SocketException in ClientHandler (run)");
-            e.printStackTrace();
+            //e.printStackTrace();
         } catch (IOException | ClassNotFoundException e) {
             logger.warning("Caught IOException or ClassNotFoundException in ClientHandler (run)");
             //e.printStackTrace();
