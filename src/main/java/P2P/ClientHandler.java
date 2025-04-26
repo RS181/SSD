@@ -331,7 +331,8 @@ public class ClientHandler implements Runnable {
 
                 Object receivedObject = clientIn.readObject();
 
-                if (receivedObject instanceof Node n){
+                if (receivedObject instanceof Node n
+                    && n.checkNodeId()){
                     logger.info("Peer/Node we are going to remove " + n);
                     if (server.removeNeighbour(n))
                         clientOut.writeObject("OK");
@@ -362,7 +363,8 @@ public class ClientHandler implements Runnable {
 
                 Object receivedObject = clientIn.readObject();
 
-                if (receivedObject instanceof Node n){
+                if (receivedObject instanceof Node n
+                    && n.checkNodeId()){
                     logger.info("Peer/Node we are going to try to Add "+ n);
                     if (server.addNeighbour(n)) {
                         System.out.println("Added " + n + "(addPeerHandler)");
@@ -376,6 +378,7 @@ public class ClientHandler implements Runnable {
                     logger.warning("Error: Did not receive a Node (addPeerHandler)");
                 }
             }catch (Exception e){
+                e.printStackTrace();
                 logger.severe("Error ocured (addPeerHandler)");
             }
         }

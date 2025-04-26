@@ -146,4 +146,18 @@ public class Node implements Serializable {
                 "Port = "        + port      + ", " +
                 "Has Publick key = " + (publicKey != null) + "]";
     }
+
+    /**
+     * Checks if this node id was generated with publick key
+     * @return {@code true} if the node's claimed ID matches the computed ID from the public key,
+     *         {@code false} otherwise
+     */
+    public boolean checkNodeId() throws Exception {
+        String prefix = ipAddr + "_" + port;
+        PublicKey storedPK = KeysUtils.loadPublicKey( Path.of( KeysUtils.KEYS_DIR + prefix + "_Pkk" ) );
+        String computedNodeId = CryptoUtils.generateSecureNodeId( storedPK );
+        System.out.println("NODE ID CHECK = " + nodeId.equals( computedNodeId ));
+        return nodeId.equals( computedNodeId );
+    }
+
 }
