@@ -160,8 +160,6 @@ public class Operations {
         String bootstrapIp = bootstrap.getIpAddr();
         int bootstrapPort = bootstrap.getPort();
         String joiningId = joiningNode.getNodeId();
-        String joiningIp = joiningNode.getIpAddr();
-        int joiningPort = joiningNode.getPort();
 
         if (PeerComunication.sendMessageToPeer(bootstrapIp,bootstrapPort, "FIND_NODE", joiningId)
                 instanceof SecureMessage findSecureMessage
