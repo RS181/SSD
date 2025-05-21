@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="4-Peer-4-Client-Config" type="CompoundRunConfigurationType">
+    <toRun name="Client_peer_2020" type="Application" />
+    <toRun name="Client_peer_3030" type="Application" />
+    <toRun name="Client_peer_4040" type="Application" />
+    <toRun name="Client_peer_5050" type="Application" />
+    <toRun name="Peer_2020" type="Application" />
+    <toRun name="Peer_3030" type="Application" />
+    <toRun name="Peer_4040" type="Application" />
+    <toRun name="Peer_5050" type="Application" />
+    <method v="2" />
+  </configuration>
+</component>
