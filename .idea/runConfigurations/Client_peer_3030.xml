@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Client_peer_3030" type="Application" factoryName="Application" folderName="4-Clients">
+    <option name="MAIN_CLASS_NAME" value="P2P.Client" />
+    <module name="PublicLedgerAuction-SDS" />
+    <option name="PROGRAM_PARAMETERS" value="manuel localhost 3030" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
